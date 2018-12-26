@@ -1,0 +1,33 @@
+Team,Week 1,Week 2,Week 3,Week 4,Week 5,Week 6,Week 7,Week 8,Week 9,Week 10,Week 11,Week 12,Week 13,Week 14,Week 15,Week 16,Week 17
+Raiders,0,0,0,0,0,0,0,0,0,0,Patriots (Mex),0,0,0,0,0,Broncos
+Patriots,Panthers,0,0,0,0,0,0,0,0,0,at Raiders (Mex),0,0,0,0,0,at Bills
+Jaguars,0,0,Ravens (Lon),0,0,0,0,0,0,0,0,0,0,0,0,0,Texans
+Ravens,0,0,at Jaguars (Lon),0,0,0,0,0,0,0,0,0,0,0,0,0,at Browns
+Dolphins,0,0,0,Saints (Lon),0,0,0,0,0,0,0,0,0,0,0,0,Jets
+Saints,0,0,0,at Dolphins (Lon),0,0,0,0,0,0,0,0,0,0,0,0,at Buccaneers
+Browns,0,0,0,0,0,0,Vikings (Lon),0,0,0,0,at Lions,0,0,0,0,Ravens
+Vikings,0,0,0,0,0,0,at Browns (Lon),0,0,0,0,0,0,0,0,0,Lions
+Rams,0,0,0,0,0,0,0,Cardinals (Lon),0,0,0,0,0,0,0,0,49ers
+Cardinals,0,0,0,0,0,0,0,at Rams (Lon),0,0,0,0,0,0,0,0,Seahawks
+Cowboys,0,0,0,0,0,0,0,0,0,0,0,Packers,0,0,0,0,Eagles
+Seahawks,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Cardinals
+Lions,0,0,0,0,0,0,0,0,0,0,0,Browns,0,0,0,0,at Vikings
+Broncos,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Raiders
+Chargers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Chiefs
+Chiefs,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Chargers
+Bengals,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Steelers
+Jets,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Dolphins
+Giants,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Redskins
+Colts,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Titans
+Bills,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Patriots
+Redskins,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Giants
+Eagles,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Cowboys
+Steelers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Bengals
+Texans,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Jaguars
+Titans,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Colts
+Panthers,at Patriots,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Falcons
+Falcons,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Panthers
+Buccaneers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Saints
+Packers,0,0,0,0,0,0,0,0,0,0,0,at Cowboys,0,0,0,0,at Bears
+Bears,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,Packers
+49ers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at Rams

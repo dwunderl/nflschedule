@@ -1,0 +1,4 @@
+patriots,1,hometeam
+all,5,division
+
+

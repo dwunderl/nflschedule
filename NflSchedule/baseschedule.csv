@@ -1,0 +1,33 @@
+Team,Week 1,Week 2,Week 3,Week 4,Week 5,Week 6,Week 7,Week 8,Week 9,Week 10,Week 11,Week 12,Week 13,Week 14,Week 15,Week 16,Week 17
+giants,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at eagles.0,redskins.4,at cowboys.0
+redskins,0,0,0,0,0,0,0,0,0,0,0,0,0,0,panthers.12,at giants.4,eagles.0
+eagles,colts.0,0,0,0,0,0,at jaguars.0 (Lon),0,0,0,0,0,0,0,giants.0,at titans.12,at redskins.0
+cowboys,0,0,0,0,0,0,0,0,0,0,0,saints.0,lions.0,0,at falcons.7,at texans.7,giants.0
+jets,0,0,0,0,0,0,0,0,0,0,0,0,0,0,bills.15,at lions.11,patriots.0
+bills,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at jets.15,at vikings.1,dolphins.0
+dolphins,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at vikings.14,raiders.3,at bills.0
+patriots,at jaguars.0,0,0,0,0,0,0,0,0,0,0,0,0,at bears.0,packers.2,at steelers.0,at jets.0
+jaguars,patriots.0,0,0,0,0,0,eagles.0 (Lon),0,0,0,0,0,0,0,at texans.10,at colts.8,texans.0
+titans,0,0,0,0,0,0,0,at chargers.0 (Lon),Bye,0,0,0,0,0,at colts.8,eagles.12,colts.0
+texans,0,0,0,0,0,0,0,0,0,0,0,0,0,0,jaguars.10,cowboys.7,at jaguars.0
+colts,at eagles.0,0,0,0,0,0,0,0,0,0,0,0,0,0,titans.8,jaguars.8,at titans.0
+panthers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at redskins.12,at saints.5,falcons.0
+falcons,0,0,0,0,0,0,0,0,0,0,0,0,0,at packers.0,cowboys.7,ravens.10,at panthers.0
+buccaneers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,browns.9,at bears.0,saints.0
+saints,0,0,0,0,0,0,0,0,0,0,0,at cowboys.0,0,0,steelers.5,panthers.5,at buccaneers.0
+Broncos,chiefs.0,0,0,0,0,0,0,0,0,0,0,0,0,0,at chargers.3,at bengals.9,chargers.0
+Chiefs,at broncos.0,0,0,0,0,0,0,0,0,0,0,0,0,0,raiders.1,at seahawks.13,at raiders.0
+Chargers,0,0,0,0,0,0,0,titans.0 (Lon),Bye,0,0,0,0,0,broncos.3,at browns.14,at broncos.0
+Raiders,0,0,0,0,0,seahawks.0 (Lon),Bye,0,0,0,0,0,0,0,at chiefs.1,at dolphins.3,chiefs.0
+Lions,0,0,0,0,0,0,0,0,0,0,0,rams.0,at cowboys.0,0,at 49ers.11,jets.11,vikings.0
+Bears,0,0,0,0,0,0,0,0,0,0,0,0,0,patriots.0,at cardinals.13,buccaneers.0,at packers.0
+Packers,0,0,0,0,0,0,0,0,0,0,0,0,0,falcons.0,at patriots.2,at rams.6,bears.0
+Vikings,0,0,0,0,0,0,0,0,0,0,0,0,0,0,dolphins.14,bills.1,at lions.0
+Cardinals,0,0,0,0,0,0,0,0,0,0,0,0,0,0,bears.13,at 49ers.2,rams.0
+Rams,0,0,0,0,0,0,0,0,0,0,0,at lions.0,0,0,seahawks.4,packers.6,at cardinals.0
+Seahawks,0,0,0,0,0,at raiders.0 (Lon),Bye,0,0,0,0,0,0,0,at rams.4,chiefs.13,49ers.0
+49ers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,lions.11,cardinals.2,at seahawks.0
+Ravens,0,bengals.0,0,0,0,0,0,0,0,0,0,0,0,0,at bengals.6,at falcons.10,steelers.0
+Steelers,0,browns.0,0,0,0,0,0,0,0,0,0,0,0,0,at saints.5,patriots.0,at ravens.0
+Browns,0,at steelers.0,0,0,0,0,0,0,0,0,0,0,0,0,at buccaneers.9,chargers.14,bengals.0
+Bengals,0,at ravens.0,0,0,0,0,0,0,0,0,0,0,0,0,ravens.6,broncos.9,at browns.0
