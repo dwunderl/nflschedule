@@ -24,7 +24,8 @@ public class NflSchedule {
    //    Models an instance of a schedule
    //    Owns an array of team schedules
    //    Owns a list of unscheduled Games
-   //    We model a scheduled game by ...
+   //    We model a scheduled game by ... each NflTeamSchedule holds a list of scheduledGames (NflGameSchedule)
+   //    allGames
    
    NflSchedule() {
       System.out.println("Creating an nflSchedule");
