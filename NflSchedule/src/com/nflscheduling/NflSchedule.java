@@ -206,12 +206,6 @@ public class NflSchedule {
 		   return true;
 	   }
 	   
-	   int ii = 0;
-	   if (weekNum < 14) {
-		   ii++;
-	   }
-
-	   
 	   // Determine number of byes already scheduled (forced) in this week
 	   // Loop through all of the teamschedules, and check
 	   
@@ -231,9 +225,10 @@ public class NflSchedule {
 
 	   if (remainingByesToSchedule > remainingByeCapacity) {
 	       System.out.println("   ERROR determineNumByesForWeek: For week: " + weekNum + " insufficient bye capacity: " + remainingByeCapacity + ", remainingByesToSchedule: " + remainingByesToSchedule);
+	       //ERROR determineNumByesForWeek: For week: 4 insufficient bye capacity: 6.0, remainingByesToSchedule: 8.0
 	   }
 	   
-	   if (remainingByesToSchedule == remainingByeCapacity) {
+	   if (remainingByesToSchedule >= remainingByeCapacity) {
 		   byesToScheduleThisWeek = max;
 		   return true;
 	   }
@@ -256,7 +251,7 @@ public class NflSchedule {
 	   }
 	   
 	   if (byesToScheduleThisWeek > 0) {
-       System.out.println("   For week: " + weekNum + " byesToScheduleThisWeek: " + byesToScheduleThisWeek);
+          // System.out.println("   For week: " + weekNum + " byesToScheduleThisWeek: " + byesToScheduleThisWeek);
 	   }
 
 	   return true;
