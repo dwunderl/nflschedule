@@ -2,7 +2,7 @@ package com.nflscheduling;
 
 public class NflDefs {
 	
-	public static int numberOfWeeks  = 16;
+	public static int numberOfWeeks  = 17;
 	public static int numberOfTeams  = 32;
 	public static int reschedAttemptsMultiWeeksBackLimit = 10;
 	public static int reschedAttemptsOneWeekBackLimit = 7;

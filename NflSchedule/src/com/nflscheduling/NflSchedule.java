@@ -70,12 +70,68 @@ public class NflSchedule {
          else {
             gameSchedule.initGame();
             unscheduledGames.add(gameSchedule);
+            allGames.add(gameSchedule);
          }
       }
 
       return true;
    }
   
+   public boolean populateOpponentByes() {
+	   // Want each bye to have a list of opponent byes, and some sense of multiplicity
+	   // how to efficiently do this
+	   // - Sort games by hometeam
+	   // - loop through games in order (test this)
+	   //     - When encounter a change in hometeam (test)
+	   //         - currentBye = bye of hometeam (find it in unscheduled byes)
+	   //     - find Bye of opponent team and add to opponent byes 
+	   //     - (See if multiplicity can be implemented - e.g. broncos play chargers twice)
+	   // - end loop : Each unscheduled Bye should have an array of opponent byes (with multiplicity)
+	   // when we want to schedule byes we want to 
+	   
+	   // Prefer games with multiple unscheduled byes vs 1 or 0
+       //Collections.sort(allGames, NflGameSchedule.GameScheduleComparatorByHomeTeam);
+       // Choose the best games into a collection and choose randomly
+       
+       String curHomeTeamName = null;
+       NflTeamSchedule curHomeTeam = null;
+       NflGameSchedule curBye = null;
+       
+       
+       for(NflGameSchedule usgame: allGames) {
+           NflGameSchedule homeTeamBye = null;
+           NflGameSchedule awayTeamBye = null;
+
+    	  // find hometeam bye
+    	  // find awayteam bye
+     	  for (NflGameSchedule byeGame: this.unscheduledByes) {
+    		  if (byeGame.homeTeamSchedule == usgame.homeTeamSchedule) {
+    			  homeTeamBye = byeGame;
+    			  if (awayTeamBye != null) break;
+    		  }
+    		  else if(byeGame.homeTeamSchedule == usgame.awayTeamSchedule) {
+    			  awayTeamBye = byeGame;
+    			  if (homeTeamBye != null) break;
+    		  }
+    	  }
+
+    	   // Add awayteam bye to hometeam bye opponentByes
+    	   // Add hometeam bye to awwayteam bye opponentByes
+     	  homeTeamBye.opponentByes.add(awayTeamBye);
+     	  awayTeamBye.opponentByes.add(homeTeamBye);
+       }
+              
+      // debug dump of the fully populate byes with their opponent byes
+ 	  for (NflGameSchedule byeGame: this.unscheduledByes) {
+ 	      System.out.println("Bye for team: " + byeGame.homeTeamSchedule.team.teamName + ", weekNum: " + byeGame.weekNum + ", opponentBye length: " + byeGame.opponentByes.size());
+ 	 	  for (NflGameSchedule opponentByeGame: byeGame.opponentByes) {
+ 	 	      System.out.println("   Opponent Bye for team: " + opponentByeGame.homeTeamSchedule.team.teamName + ", weekNum: " + opponentByeGame.weekNum + ", opponentBye length: " + opponentByeGame.opponentByes.size());
+ 		  }
+	  }
+
+	   return true;
+   }
+
    public boolean createByeSchedules() {
 
       // TBD:Byes
@@ -178,32 +234,52 @@ public class NflSchedule {
        return byeAvail;
    }
    
-   public boolean determineNumByesForWeek(NflSchedule schedule, int weekNum) {
-	   // byesToScheduleThisWeek - set
-	   // remaining byeCapacity in resource "Bye" from weeknum back
+   /*
+    * 	AdjustedMin = 
+		max(
+			remByesToSched - (RemByeMax - MaxByes) - ForcedByes(usage),    
+			MinByes - ForcedByes(usage))
+	AdjustedMax = 
+		Min(
+			remByesToSched - (RemByeMin - MinByes) - ForcedByes(usage),
+			MaxByes - ForcedByes(usage))
 
-	   byesToScheduleThisWeek = 0;
-	   float remainingByeCapacity = 0;
-	   float remainingByesToSchedule = 0;
+    * 
+    */
+   public boolean determineNumByesForWeek(NflSchedule schedule, int weekNum) {
+	   // byesToScheduleThisWeek - set it
+	   // remaining byeCapacity in resource "Bye" from weeknum back
 	   
+	   int remainingByesToSchedule = unscheduledByes.size();
+	   this.byesToScheduleThisWeek = 0;
+
+	   if (remainingByesToSchedule == 0) {
+		   return true;
+	   }
+
+	   int remainingByeCapacity = 0;
+	   int remainingByeMin = 0;
 	   NflResource byeResource = findResource("Bye");
 	   
        if (byeResource == null) {
           return true;
        }
        
-       // byesToScheduleThisWeek = byeResource.weeklyLimit[weekNum-1] - byeResource.usage[weekNum-1];
+       // Short circuit (temporary): exactly specified number for this week
+       // TBD: Doesnt account for forced byes in the schedule
+       /*
+       if (byeResource.weeklyMinimum[weekNum-1] == byeResource.weeklyLimit[weekNum-1]) {
+    	   byesToScheduleThisWeek = byeResource.weeklyMinimum[weekNum-1];
+    	   return true;
+       }
+       */
 
+       // determine remaining bye capacity based on the specified bye resource max 
+       // reduced by the number of byes already scheduled
+       // Accumulated over the remaining unscheduled weeks
 	   for (int wi=weekNum; wi >= 1; wi--) {
-          remainingByeCapacity += byeResource.weeklyLimit[wi-1] - byeResource.usage[wi-1];
-	   }
-	   
-	   // remaining byes to be scheduled
-	   remainingByesToSchedule = unscheduledByes.size();
-
-	   if (remainingByeCapacity == 0 || remainingByesToSchedule == 0) {
-		   byesToScheduleThisWeek = 0;
-		   return true;
+	      remainingByeCapacity += byeResource.weeklyLimit[wi-1] - byeResource.usage[wi-1];
+	      remainingByeMin += byeResource.weeklyMinimum[wi-1] - byeResource.usage[wi-1];
 	   }
 	   
 	   // Determine number of byes already scheduled (forced) in this week
@@ -213,21 +289,39 @@ public class NflSchedule {
 	   
 	   for (NflTeamSchedule teamSched: schedule.teams) {
 		   NflGameSchedule gameInThisWeek = teamSched.scheduledGames[weekNum-1];
-		   if (gameInThisWeek != null) {
-			   if (gameInThisWeek.isBye) {
-				   byesScheduledThisWeek++;
-			   }
+		   if (gameInThisWeek != null && gameInThisWeek.isBye) {
+              byesScheduledThisWeek++;
 		   }
 	   }
 	   
+	   // Determine the min and the max possible byes for this week
        int min = Math.max(byeResource.weeklyMinimum[weekNum-1] - byesScheduledThisWeek, 0);
 	   int max = Math.max(byeResource.weeklyLimit[weekNum-1] - byesScheduledThisWeek, 0);
+	   /*
+	    * 	AdjustedMin = 
+			max(
+				remByesToSched - (RemByeMax - MaxByes) - ForcedByes(usage),    
+				MinByes - ForcedByes(usage))
+	AdjustedMax = 
+		Min(
+			remByesToSched - (RemByeMin - MinByes) - ForcedByes(usage),
+			MaxByes - ForcedByes(usage))
+
+*/
+	   
+       int adjustedMin = Math.max(byeResource.weeklyMinimum[weekNum-1] - byesScheduledThisWeek, 
+                                  remainingByesToSchedule - (remainingByeCapacity - byeResource.weeklyLimit[weekNum-1]));
+	   int adjustedMax = Math.min(byeResource.weeklyLimit[weekNum-1] - byesScheduledThisWeek, 
+                                  remainingByesToSchedule - (remainingByeMin - byeResource.weeklyMinimum[weekNum-1]));
 
 	   if (remainingByesToSchedule > remainingByeCapacity) {
 	       System.out.println("   ERROR determineNumByesForWeek: For week: " + weekNum + " insufficient bye capacity: " + remainingByeCapacity + ", remainingByesToSchedule: " + remainingByesToSchedule);
 	       //ERROR determineNumByesForWeek: For week: 4 insufficient bye capacity: 6.0, remainingByesToSchedule: 8.0
 	   }
 	   
+	   // TBD: May need to adjust min so that downstream has capacity for the remaining byes
+	   // i.e. maybe consider remainingByeCapacity (Max), remainingByeMin (don't compute yet), remainingByesToSchedule, 
+	   // remainingByeCapacity (Max) - remainingByeMin vs remainingByesToSchedule
 	   if (remainingByesToSchedule >= remainingByeCapacity) {
 		   byesToScheduleThisWeek = max;
 		   return true;
@@ -241,7 +335,8 @@ public class NflSchedule {
        //useMaxByeCapacityProb = 1.0 - useMaxByeCapacityProb;
        //useMaxByeCapacityProb = randomNum;
 
-       byesToScheduleThisWeek = (int) (useMaxByeCapacityProb*(max - min) + min);
+       //byesToScheduleThisWeek = (int) (useMaxByeCapacityProb*(max - min) + min);
+       byesToScheduleThisWeek = (int) (useMaxByeCapacityProb*(adjustedMax - adjustedMin) + adjustedMin);
 	   
 	   for (int bc=min; bc <= max; bc += 2) {
 		   if (byesToScheduleThisWeek <= bc) {

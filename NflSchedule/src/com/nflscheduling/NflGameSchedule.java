@@ -22,6 +22,8 @@ public class NflGameSchedule {
    public NflTeamSchedule homeTeamSchedule;
    public NflTeamSchedule awayTeamSchedule;
    public ArrayList<NflGameSchedule> unscheduledByes;
+   public ArrayList<NflGameSchedule> opponentByes;
+   public int byeCandidateScore;
 
    public boolean isBye;
 
@@ -69,6 +71,7 @@ public class NflGameSchedule {
       homeTeamSchedule = schedule.findTeam(game.homeTeam);
 	  awayTeamSchedule = schedule.findTeam(game.awayTeam);
 	  metrics = new ArrayList<NflGameMetric>();
+      opponentByes = new ArrayList<NflGameSchedule>();
       isBye = true;
 	      
       return true;
@@ -131,7 +134,25 @@ public class NflGameSchedule {
       
       return requestedMetric;
    }
+   
+   
+   
+   /*Comparator for sorting the list by score */
+   public static Comparator<NflGameSchedule> GameScheduleComparatorByHomeTeam = new Comparator<NflGameSchedule>() {
 
+      public int compare(NflGameSchedule gs1, NflGameSchedule gs2) {
+          String homeTeam1Name = gs1.homeTeamSchedule.team.teamName;
+          String homeTeam2Name = gs2.homeTeamSchedule.team.teamName;
+       
+	     //ascending order
+	     int returnStatus = homeTeam1Name.compareTo(homeTeam2Name);
+
+	     return returnStatus;
+       }
+    };
+   
+   
+   
    /*Comparator for sorting the list by score */
    public static Comparator<NflGameSchedule> GameScheduleComparatorByScore = new Comparator<NflGameSchedule>() {
 
@@ -188,19 +209,42 @@ public class NflGameSchedule {
             Double gs2score = gs2.score;
             Integer gs1UnschedByeCount = gs1.unscheduledByes.size();
             Integer gs2UnschedByeCount = gs2.unscheduledByes.size();
+            Integer gs1WeekNum = gs1.weekNum;
+            Integer gs2WeekNum = gs2.weekNum;
             
           
-            int returnStatus;
+            int returnStatus = 0;
             
       	    //descending order by unschedule bye count - prefer more unscheduled byes
             returnStatus = gs2UnschedByeCount.compareTo(gs1UnschedByeCount);
             
             if (returnStatus == 0) {
-            	// to break the tie, descending order by score (penalty) - prefer a higher penalty (less attractive game)
+            	// prefer unscheduled game over scheduled game
+                returnStatus = gs1WeekNum.compareTo(gs2WeekNum);
+            }
+            
+            if (returnStatus == 0) {
+            	// then, descending order by score (penalty) - prefer a higher penalty (less attractive game)
                 returnStatus = gs2score.compareTo(gs1score);
             }
 
             return returnStatus;
          }
       };
+      
+      public static Comparator<NflGameSchedule> GameScheduleByeComparatorByByeCandidateScore = new Comparator<NflGameSchedule>() {
+
+          public int compare(NflGameSchedule gsbye1, NflGameSchedule gsbye2) {
+          	 Integer gsBye1CandidateScore = gsbye1.byeCandidateScore;
+         	 Integer gsBye2CandidateScore = gsbye2.byeCandidateScore;
+        	 
+             int returnStatus = 0;
+
+       	    // Descending order by byeCandidateScore
+             returnStatus = gsBye2CandidateScore.compareTo(gsBye1CandidateScore);
+                          
+             return returnStatus;
+          }
+       };
+
 }
