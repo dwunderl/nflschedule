@@ -52,8 +52,18 @@ public class NflScheduler {
    
    /* Issues identified by Ted
     * Can't have a back to back matchup with only a bye in between, has to have at least one game for both teams 
+    *    Streamline by checking for - if (!usgame.game.findAttribute("division")) {
+    *    Only divisional games can have repeat matchups
+
+    *    Basic functionality in NflGMetNoRepeatedMatchup, turned on sched metric for alert if repeated matchup
+    *    Could be a hole, due to a forced game where a bye could slip in: 
+    *    forcedGame  Hole  NewGame scheduled - then bye slips into hole, could fix within bye scheduling
     * Divisional teams shouldn't play each other twice in the first 5 weeks of the season, they should wait until at least week 6 for a rematch 
-    * Byes should start no later than week 5. byes in weeks 4,12, 13 can be optional 
+    *    probably need a new game metric to push for this, then a schedule metric
+    *           if (!usgame.game.findAttribute("division")) {
+    *           NflGMetDivisionalSeparation
+    * Byes should start no later than week 5. byes in weeks 4,12, 13 can be optional - now works, Bye resource can specify this
+    *                   
     */
 
    public static Random rnd = new Random();

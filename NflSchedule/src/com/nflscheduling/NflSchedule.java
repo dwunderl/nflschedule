@@ -37,12 +37,14 @@ public class NflSchedule {
       
       scheduleMetrics = new ArrayList<NflScheduleMetric>();
       
-      //NflSMetNoRepeatedMatchup metricNRM = new NflSMetNoRepeatedMatchup("NoRepeatedMatchup");
-      //scheduleMetrics.add(metricNRM);
+      NflSMetNoRepeatedMatchup metricNRM = new NflSMetNoRepeatedMatchup("NoRepeatedMatchup");
+      scheduleMetrics.add(metricNRM);
       NflSMetRoadTripLimit metricRTL = new NflSMetRoadTripLimit("RoadTripLimit");
       scheduleMetrics.add(metricRTL);
       NflSMetHomeStandLimit metricHSL = new NflSMetHomeStandLimit("HomeStandLimit");
       scheduleMetrics.add(metricHSL);
+      NflSMetDivisionalSeparation metricDS = new NflSMetDivisionalSeparation("DivisionalSeparation");
+      scheduleMetrics.add(metricDS);
       //NflSMetBalancedHomeAway metricBalHA = new NflSMetBalancedHomeAway("Balanced Home Away", this);
       //scheduleMetrics.add(metricBalHA);
    }

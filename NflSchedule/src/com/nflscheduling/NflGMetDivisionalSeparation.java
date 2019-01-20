@@ -2,15 +2,20 @@ package com.nflscheduling;
 
 import java.util.ArrayList;
 
-public class NflGMetNoRepeatedMatchup extends NflGameMetric {
+public class NflGMetDivisionalSeparation extends NflGameMetric {
 
-	NflGMetNoRepeatedMatchup(String theName, NflGameSchedule theGameSchedule) {
+	public NflGMetDivisionalSeparation(String theName, NflGameSchedule theGameSchedule) {
 		super(theName, theGameSchedule);
 		// TODO Auto-generated constructor stub
 	}
 
 	@Override
 	public boolean computeMetric(int weekNum, NflSchedule schedule, ArrayList<NflGameSchedule> candidateGames) {
+		
+       // ensure 1st Divisional game with a team is after week 5
+	   // if game is a divisional game, and weeknum > 5, incentivize the game if the second matchup game hasn't been scheduled yet
+	   // Otherwise a 0 score - no incentive
+		
 	   // Ensure there is not a weekNum-1 or weekNum+1 scheduled game that has the same teams
 	   // as the gameSchedule linked to this gameMetric
 	   // if no repeated matchups in either direction - then set the score to 0
@@ -69,7 +74,7 @@ public class NflGMetNoRepeatedMatchup extends NflGameMetric {
 	    	 }
 	    	 
              if (nextWeeksAwayTeamGame.game.awayTeam.equalsIgnoreCase(gameSchedule.game.homeTeam) &&
-        		 nextWeeksAwayTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
+        		    nextWeeksAwayTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
                 score = 10.0;
              }
              break;
