@@ -19,7 +19,9 @@ public class NflScheduler {
                                                                // Byes are scheduled games marked with isBye=true
                                                                // Holds arrays of allGames, unscheduledGames, unscheduledByes
    
-   public static ArrayList<NflRestrictedGame> restrictedGames; // The restrictedGames are games forced into fixed/specified weeks
+  public static ArrayList<NflResource> resources;
+  
+  public static ArrayList<NflRestrictedGame> restrictedGames; // The restrictedGames are games forced into fixed/specified weeks
                                                                // Some are pre-defined in file nflforcedgames.csv
    
    public static ArrayList<NflGame> games;      // base class instances of games - to be turned in NflGameSchedule instances
@@ -116,6 +118,7 @@ public class NflScheduler {
       // Prints "Hello, World" in the terminal window.
       System.out.println("Hello, World");
 
+      // ---------- Scheduler Initialization ------------------
       NflScheduler scheduler = new NflScheduler();
       loadParams();                                 // load from nflparams.csv: NflDefs.numberOfWeeks, NflDefs.numberOfTeams
                                                     // resched limit params are hard-coded in here, TBD: should get from a file
@@ -125,6 +128,14 @@ public class NflScheduler {
       loadGames(games); // base games created globally in NflScheduler
       partialSchedules = new NflPartialScheduleEntry[NflDefs.numberOfWeeks];
 
+      restrictedGames = new ArrayList<NflRestrictedGame>();
+      if (!loadForcedGames(restrictedGames))
+      {
+          System.out.println("ERROR loading restricted games");
+          System.exit(1);
+      }
+
+      //---------- Schedule Initialization --------------------
       // initialize unscheduledGames of the baseSchedule from all the modeled games
       baseSchedule = new NflSchedule();
       //createTeams(games, baseSchedule);
@@ -132,18 +143,8 @@ public class NflScheduler {
       baseSchedule.createGameSchedules(games);
       baseSchedule.populateOpponentByes();
       
-      //baseSchedule.createByeSchedules();
-      
-      //restrictedGames = new ArrayList<NflRestrictedGame>(NflDefs.numberOfWeeks*NflDefs.numberOfTeams);
-      restrictedGames = new ArrayList<NflRestrictedGame>();
       loadResources(baseSchedule);
       
-      if (!loadForcedGames(restrictedGames))
-      {
-          System.out.println("ERROR loading restricted games");
-          System.exit(1);
-      }
-
       System.out.println("Creating new nflScheduler");
       System.out.println("numberOfWeeks: " + NflDefs.numberOfWeeks);
       System.out.println("games size is: " + games.size());
@@ -168,6 +169,7 @@ public class NflScheduler {
 
       reschedLog = new ArrayList<String>();
 
+      // ------------ Scheduling -------------
       // Schedule games that are restricted - according to the restrictedGames
       scheduleForcedGames(restrictedGames, baseSchedule);
 
@@ -396,24 +398,20 @@ public class NflScheduler {
             if (token.length > 4) {
          	   stadium = token[4];
             }
-
-            /*
-             * patriots,1,hometeam
-             * Broncos,5,Hometeam,Chiefs,London
-             * all,10,division,,
-             * Broncos,7,bye
-             * teamname,weeknum,restriction,otherteam,attribute
-             */
             
             if (teamName.equalsIgnoreCase("all"))
             {
-               for (int ti=0; ti < baseSchedule.teams.size(); ti++) {
-                  NflTeamSchedule teamSchedule = baseSchedule.teams.get(ti);
-                  NflRestrictedGame restrictedGame = new NflRestrictedGame(teamSchedule.team.teamName, weekNum, restriction, otherTeamName, stadium);
+                // for (int ti=0; ti < baseSchedule.teams.size(); ti++) {
+                for (int ti=0; ti < teams.size(); ti++) {
+                  // NflTeamSchedule teamSchedule = baseSchedule.teams.get(ti);
+                  // NflRestrictedGame restrictedGame = new NflRestrictedGame(teamSchedule.team.teamName, weekNum, restriction, otherTeamName, stadium);
+                   NflTeam team = teams.get(ti);
+                   NflRestrictedGame restrictedGame = new NflRestrictedGame(team.teamName, weekNum, restriction, otherTeamName, stadium);
                   weeks.add(restrictedGame);
 
                   System.out.println("line token length: " + token.length);
-                  System.out.println("Restricted game: week: " + weekNum + ", Team: " + teamSchedule.team.teamName + ", restriction: " + restriction);
+                  System.out.println("Restricted game: week: " + weekNum + ", Team: " + team.teamName + ", restriction: " + restriction);
+                  //System.out.println("Restricted game: week: " + weekNum + ", Team: " + teamSchedule.team.teamName + ", restriction: " + restriction);
                }
             }
             else {
