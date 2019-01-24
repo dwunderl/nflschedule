@@ -27,7 +27,7 @@ public class NflScheduleMetric {
       ArrayList<NflGameSchedule> candidateGames = null;
       score = 0;
       for (int ti=1; ti <= NflDefs.numberOfTeams; ti++) {
-         NflTeamSchedule teamSchedule = schedule.teams.get(ti-1);
+         NflTeamSchedule teamSchedule = schedule.teamSchedules.get(ti-1);
          for (int wi=1; wi <= NflDefs.numberOfWeeks; wi++) {
             NflGameSchedule teamGame = teamSchedule.scheduledGames[wi-1];
             if (teamGame == null || teamGame.isBye) {

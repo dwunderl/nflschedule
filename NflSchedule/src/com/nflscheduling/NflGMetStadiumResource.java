@@ -17,7 +17,7 @@ public class NflGMetStadiumResource extends NflGameMetric {
       score = 0.0;
 
       if (this.gameSchedule.isBye) {
-    	     return true;
+         return true;
       }
       
       // determine if one of my teams has a constrained home stadium - no scoring if none exists
@@ -25,18 +25,18 @@ public class NflGMetStadiumResource extends NflGameMetric {
       NflTeamSchedule homeTeamSched = schedule.findTeam(gameSchedule.game.homeTeam);
       NflTeamSchedule awayTeamSched = schedule.findTeam(gameSchedule.game.awayTeam);
       
-      NflResource stadiumResource = null;
+      NflResourceSchedule stadiumResourceSchedule = null;
       
       if (homeTeamSched.team.stadium != null) {          
-          stadiumResource = schedule.findResource(homeTeamSched.team.stadium);
+    	  stadiumResourceSchedule = schedule.findResource(homeTeamSched.team.stadium);
       }
       
       if (awayTeamSched.team.stadium != null) {          
-          stadiumResource = schedule.findResource(awayTeamSched.team.stadium);
+    	  stadiumResourceSchedule = schedule.findResource(awayTeamSched.team.stadium);
       }
       
-      if (stadiumResource == null) {
-    	     return true;
+      if (stadiumResourceSchedule == null) {
+         return true;
       }
      
       // determine the remaining capacity of the stadium
@@ -44,7 +44,7 @@ public class NflGMetStadiumResource extends NflGameMetric {
 
       int remainingCapacityOfStadium = 0;
       for (int wi=weekNum; wi >= 1; wi--) {
-    	     remainingCapacityOfStadium += stadiumResource.usage[wi-1];
+    	     remainingCapacityOfStadium += stadiumResourceSchedule.usage[wi-1];
       }
       
       // determine the remaining unscheduled home games for the stadium
@@ -53,7 +53,7 @@ public class NflGMetStadiumResource extends NflGameMetric {
 	  for(NflGameSchedule usGame: candidateGames) {
 		  if (usGame.stadium == null) continue;
 		  
-		  if (usGame.stadium.equalsIgnoreCase(stadiumResource.resourceName)) {
+		  if (usGame.stadium.equalsIgnoreCase(stadiumResourceSchedule.resource.resourceName)) {
 			  remainingHomeGames++;
 		  }
 	  }
@@ -65,18 +65,18 @@ public class NflGMetStadiumResource extends NflGameMetric {
       // For the current game being evaluated - which uses the stadium
       // include this current candidate game in the count of games scheduled for this week - for conditional evaluation purposes
       if (homeTeamSched.team.stadium != null &&
-          homeTeamSched.team.stadium.equalsIgnoreCase(stadiumResource.resourceName)) {
-    	     homeGamesScheduledThisWeek++;
+          homeTeamSched.team.stadium.equalsIgnoreCase(stadiumResourceSchedule.resource.resourceName)) {
+          homeGamesScheduledThisWeek++;
       }
       else {
-    	     awayGamesScheduledThisWeek++;
+         awayGamesScheduledThisWeek++;
       }
       
       // Find the teams that use the stadium
       // then if they have a game already scheduled this week - count as home or away
-      for (NflTeamSchedule teamSched: schedule.teams) {
+      for (NflTeamSchedule teamSched: schedule.teamSchedules) {
 	     if (teamSched.team.stadium == null) continue;
-    	     if (teamSched.team.stadium.equalsIgnoreCase(stadiumResource.resourceName)) {
+    	     if (teamSched.team.stadium.equalsIgnoreCase(stadiumResourceSchedule.resource.resourceName)) {
             NflGameSchedule thisWeeksGame = teamSched.scheduledGames[weekNum-1];
     	        if (thisWeeksGame != null) {
     	           if (thisWeeksGame.game.homeTeam.equalsIgnoreCase(teamSched.team.teamName)) {

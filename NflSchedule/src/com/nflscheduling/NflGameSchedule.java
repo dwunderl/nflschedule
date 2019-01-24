@@ -28,7 +28,7 @@ public class NflGameSchedule {
    public boolean isBye;
 
    NflGameSchedule(NflGame theGame, NflSchedule theSchedule) {
-      System.out.println("Creating an nflGameMetric");
+      //System.out.println("Creating an nflGameMetric");
       game = theGame;
       weekNum = 0;
       restrictedGame = false;

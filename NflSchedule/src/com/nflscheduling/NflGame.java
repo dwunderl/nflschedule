@@ -13,8 +13,6 @@ public class NflGame {
    public boolean isBye;
 
    NflGame() {
-      System.out.println("Creating an nflGame");
-      //weekNum = 0;
       attribute = new ArrayList<String>(2);
       isBye = false;
    }

@@ -9,8 +9,8 @@ public class NflSchedule {
    // ---
    // Instance data
 
-   public ArrayList<NflTeamSchedule> teams;
-   public ArrayList<NflResource> resources;
+   public ArrayList<NflTeamSchedule> teamSchedules;
+   public ArrayList<NflResourceSchedule> resourceSchedules;
    public ArrayList<NflGameSchedule> allGames;
    public ArrayList<NflGameSchedule> unscheduledGames;
    public ArrayList<NflGameSchedule> unscheduledByes;
@@ -29,11 +29,18 @@ public class NflSchedule {
    
    NflSchedule() {
       System.out.println("Creating an nflSchedule");
-      teams = new ArrayList<NflTeamSchedule>();
+   }
+
+   public boolean init(ArrayList<NflTeam> teams, 
+		               ArrayList<NflGame> games,
+		               ArrayList<NflResource> resources) {
+	   
+	   
+	  teamSchedules = new ArrayList<NflTeamSchedule>();
       allGames = new ArrayList<NflGameSchedule>();
       unscheduledGames = new ArrayList<NflGameSchedule>();
       unscheduledByes = new ArrayList<NflGameSchedule>();
-      resources = new ArrayList<NflResource>();
+      resourceSchedules = new ArrayList<NflResourceSchedule>();
       
       scheduleMetrics = new ArrayList<NflScheduleMetric>();
       
@@ -47,14 +54,21 @@ public class NflSchedule {
       scheduleMetrics.add(metricDS);
       //NflSMetBalancedHomeAway metricBalHA = new NflSMetBalancedHomeAway("Balanced Home Away", this);
       //scheduleMetrics.add(metricBalHA);
-   }
 
+	  createTeamSchedules(teams);
+	  createGameSchedules(games);
+	  createResourceSchedules(resources);
+	  populateOpponentByes();
+
+	  return true;
+   }
+   
    public boolean createTeamSchedules(ArrayList<NflTeam> baseTeams) {
 	  for (int ti=0; ti < baseTeams.size(); ti++) {
 	     NflTeam team = baseTeams.get(ti);
 	     
 	     NflTeamSchedule teamSchedule = new NflTeamSchedule(team);
-	     teams.add(teamSchedule);
+	     teamSchedules.add(teamSchedule);
 	  }
 
       return true;
@@ -79,6 +93,16 @@ public class NflSchedule {
       return true;
    }
   
+   public boolean createResourceSchedules(ArrayList<NflResource> baseResources) {
+      for (int ri=0; ri < baseResources.size(); ri++) {
+	     NflResource resource = baseResources.get(ri);    
+	     NflResourceSchedule resourceSchedule = new NflResourceSchedule(resource, this);
+	     resourceSchedules.add(resourceSchedule);
+	  }
+
+	  return true;
+   }
+
    public boolean populateOpponentByes() {
 	   // Want each bye to have a list of opponent byes, and some sense of multiplicity
 	   // how to efficiently do this
@@ -98,7 +122,6 @@ public class NflSchedule {
        String curHomeTeamName = null;
        NflTeamSchedule curHomeTeam = null;
        NflGameSchedule curBye = null;
-       
        
        for(NflGameSchedule usgame: allGames) {
            NflGameSchedule homeTeamBye = null;
@@ -124,16 +147,19 @@ public class NflSchedule {
        }
               
       // debug dump of the fully populate byes with their opponent byes
+       /*
  	  for (NflGameSchedule byeGame: this.unscheduledByes) {
  	      System.out.println("Bye for team: " + byeGame.homeTeamSchedule.team.teamName + ", weekNum: " + byeGame.weekNum + ", opponentBye length: " + byeGame.opponentByes.size());
  	 	  for (NflGameSchedule opponentByeGame: byeGame.opponentByes) {
  	 	      System.out.println("   Opponent Bye for team: " + opponentByeGame.homeTeamSchedule.team.teamName + ", weekNum: " + opponentByeGame.weekNum + ", opponentBye length: " + opponentByeGame.opponentByes.size());
  		  }
 	  }
+	  */
 
 	   return true;
    }
 
+   /*
    public boolean createByeSchedules() {
 
       // TBD:Byes
@@ -149,12 +175,12 @@ public class NflSchedule {
 
       return true;
    }
-
+*/
    public NflTeamSchedule findTeam(String teamName) {
 	  if (teamName == null) return null;
 	  
-      for (int ti=0; ti < teams.size(); ti++) {
-         NflTeamSchedule teamSchedule = teams.get(ti);
+      for (int ti=0; ti < teamSchedules.size(); ti++) {
+         NflTeamSchedule teamSchedule = teamSchedules.get(ti);
          if (teamName.equalsIgnoreCase(teamSchedule.team.teamName)) {
             return teamSchedule;
          }
@@ -163,11 +189,11 @@ public class NflSchedule {
       return null;
    }
 
-   public NflResource findResource(String attrName) {
-      for (int ali=0; ali < resources.size(); ali++) {
-         NflResource resource = resources.get(ali);
-         if (attrName.equalsIgnoreCase(resource.resourceName)) {
-            return resource;
+   public NflResourceSchedule findResource(String attrName) {
+      for (int ali=0; ali < resourceSchedules.size(); ali++) {
+         NflResourceSchedule resourceSchedule = resourceSchedules.get(ali);
+         if (attrName.equalsIgnoreCase(resourceSchedule.resource.resourceName)) {
+            return resourceSchedule;
          }
       }
 
@@ -175,14 +201,14 @@ public class NflSchedule {
    }
 
    public boolean resourceExists(String resourceName) {
-      NflResource resource = findResource(resourceName);
-      return resource != null;
+      NflResourceSchedule resourceSchedule = findResource(resourceName);
+      return resourceSchedule != null;
    }
 
    public boolean resourceHasCapacity(String resourceName, int weekNum) {
-      NflResource resource = findResource(resourceName);
-      if (resource != null) {
-          if (resource.weeklyLimit[weekNum-1] > 0) {
+      NflResourceSchedule resourceSchedule = findResource(resourceName);
+      if (resourceSchedule != null) {
+          if (resourceSchedule.resource.weeklyLimit[weekNum-1] > 0) {
             return true;
          }
       }
@@ -192,8 +218,8 @@ public class NflSchedule {
    
    public int scheduledTeamsInWeek(int weekNum) {
 	  int gameCount = 0;
-	  for (int ti=0; ti < teams.size(); ti++) {
-	     NflTeamSchedule teamSchedule = teams.get(ti);
+	  for (int ti=0; ti < teamSchedules.size(); ti++) {
+	     NflTeamSchedule teamSchedule = teamSchedules.get(ti);
 	     if (teamSchedule.scheduledGames[weekNum-1] != null) {
             gameCount++;
 	     }
@@ -204,8 +230,8 @@ public class NflSchedule {
 
    public int unscheduledTeamsInWeek(int weekNum, ArrayList<NflTeamSchedule> unscheduledGames) {
 	  int gameCount = 0;
-	  for (int ti=0; ti < teams.size(); ti++) {
-	     NflTeamSchedule teamSchedule = teams.get(ti);
+	  for (int ti=0; ti < teamSchedules.size(); ti++) {
+	     NflTeamSchedule teamSchedule = teamSchedules.get(ti);
 	     if (teamSchedule.scheduledGames[weekNum-1] == null) {
 	    	    if (!teamSchedule.hasScheduledBye()) {
                gameCount++;
@@ -231,8 +257,8 @@ public class NflSchedule {
    }
    
    public int byeCapacityAvail(int weekNum) {
-	   NflResource byeResource = findResource("Bye");
-       int byeAvail = byeResource.weeklyLimit[weekNum-1] - byeResource.usage[weekNum-1];
+	   NflResourceSchedule byeResource = findResource("Bye");
+       int byeAvail = byeResource.resource.weeklyLimit[weekNum-1] - byeResource.usage[weekNum-1];
        return byeAvail;
    }
    
@@ -248,7 +274,7 @@ public class NflSchedule {
 
     * 
     */
-   public boolean determineNumByesForWeek(NflSchedule schedule, int weekNum) {
+   public boolean determineNumByesForWeek(int weekNum) {
 	   // byesToScheduleThisWeek - set it
 	   // remaining byeCapacity in resource "Bye" from weeknum back
 	   
@@ -261,9 +287,9 @@ public class NflSchedule {
 
 	   int remainingByeCapacity = 0;
 	   int remainingByeMin = 0;
-	   NflResource byeResource = findResource("Bye");
+	   NflResourceSchedule byeResourceSchedule = findResource("Bye");
 	   
-       if (byeResource == null) {
+       if (byeResourceSchedule == null) {
           return true;
        }
        
@@ -280,8 +306,8 @@ public class NflSchedule {
        // reduced by the number of byes already scheduled
        // Accumulated over the remaining unscheduled weeks
 	   for (int wi=weekNum; wi >= 1; wi--) {
-	      remainingByeCapacity += byeResource.weeklyLimit[wi-1] - byeResource.usage[wi-1];
-	      remainingByeMin += byeResource.weeklyMinimum[wi-1] - byeResource.usage[wi-1];
+	      remainingByeCapacity += byeResourceSchedule.resource.weeklyLimit[wi-1] - byeResourceSchedule.usage[wi-1];
+	      remainingByeMin += byeResourceSchedule.resource.weeklyMinimum[wi-1] - byeResourceSchedule.usage[wi-1];
 	   }
 	   
 	   // Determine number of byes already scheduled (forced) in this week
@@ -289,7 +315,7 @@ public class NflSchedule {
 	   
 	   int byesScheduledThisWeek = 0;
 	   
-	   for (NflTeamSchedule teamSched: schedule.teams) {
+	   for (NflTeamSchedule teamSched: teamSchedules) {
 		   NflGameSchedule gameInThisWeek = teamSched.scheduledGames[weekNum-1];
 		   if (gameInThisWeek != null && gameInThisWeek.isBye) {
               byesScheduledThisWeek++;
@@ -297,8 +323,8 @@ public class NflSchedule {
 	   }
 	   
 	   // Determine the min and the max possible byes for this week
-       int min = Math.max(byeResource.weeklyMinimum[weekNum-1] - byesScheduledThisWeek, 0);
-	   int max = Math.max(byeResource.weeklyLimit[weekNum-1] - byesScheduledThisWeek, 0);
+       int min = Math.max(byeResourceSchedule.resource.weeklyMinimum[weekNum-1] - byesScheduledThisWeek, 0);
+	   int max = Math.max(byeResourceSchedule.resource.weeklyLimit[weekNum-1] - byesScheduledThisWeek, 0);
 	   /*
 	    * 	AdjustedMin = 
 			max(
@@ -311,10 +337,10 @@ public class NflSchedule {
 
 */
 	   
-       int adjustedMin = Math.max(byeResource.weeklyMinimum[weekNum-1] - byesScheduledThisWeek, 
-                                  remainingByesToSchedule - (remainingByeCapacity - byeResource.weeklyLimit[weekNum-1]));
-	   int adjustedMax = Math.min(byeResource.weeklyLimit[weekNum-1] - byesScheduledThisWeek, 
-                                  remainingByesToSchedule - (remainingByeMin - byeResource.weeklyMinimum[weekNum-1]));
+       int adjustedMin = Math.max(byeResourceSchedule.resource.weeklyMinimum[weekNum-1] - byesScheduledThisWeek, 
+                                  remainingByesToSchedule - (remainingByeCapacity - byeResourceSchedule.resource.weeklyLimit[weekNum-1]));
+	   int adjustedMax = Math.min(byeResourceSchedule.resource.weeklyLimit[weekNum-1] - byesScheduledThisWeek, 
+                                  remainingByesToSchedule - (remainingByeMin - byeResourceSchedule.resource.weeklyMinimum[weekNum-1]));
 
 	   if (remainingByesToSchedule > remainingByeCapacity) {
 	       System.out.println("   ERROR determineNumByesForWeek: For week: " + weekNum + " insufficient bye capacity: " + remainingByeCapacity + ", remainingByesToSchedule: " + remainingByesToSchedule);

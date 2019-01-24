@@ -14,16 +14,18 @@ public class NflScheduler {
    // Algorithm Top Level is in the static main function
    // baseSchedule holds the partial schedule (so far)
 	
-   public static NflSchedule baseSchedule;                     // baseSchedule.teams holds the partial schedule
+	   public static ArrayList<NflSchedule> schedules;         // schedule[i].teams holds the partial schedule
+	   
+	   public static NflSchedule baseSchedule;                 // baseSchedule.teams holds the partial schedule
                                                                // Each team has an array of scheduled games - 1 per week
                                                                // Byes are scheduled games marked with isBye=true
                                                                // Holds arrays of allGames, unscheduledGames, unscheduledByes
    
-  public static ArrayList<NflResource> resources;
   
-  public static ArrayList<NflRestrictedGame> restrictedGames; // The restrictedGames are games forced into fixed/specified weeks
+   public static ArrayList<NflRestrictedGame> restrictedGames; // The restrictedGames are games forced into fixed/specified weeks
                                                                // Some are pre-defined in file nflforcedgames.csv
    
+   public static ArrayList<NflResource> resources;
    public static ArrayList<NflGame> games;      // base class instances of games - to be turned in NflGameSchedule instances
                                                 // loaded from nflgames.csv within function loadGames()
    
@@ -114,18 +116,23 @@ public class NflScheduler {
    public static BufferedWriter partialScheduleLogBw = null;
    public static FileWriter partialScheduleLogFw = null;
 
+   
    public static void main(String[] args) {
       // Prints "Hello, World" in the terminal window.
       System.out.println("Hello, World");
 
       // ---------- Scheduler Initialization ------------------
       NflScheduler scheduler = new NflScheduler();
+      
       loadParams();                                 // load from nflparams.csv: NflDefs.numberOfWeeks, NflDefs.numberOfTeams
                                                     // resched limit params are hard-coded in here, TBD: should get from a file
       games = new ArrayList<NflGame>();
       teams = new ArrayList<NflTeam>();
+      resources = new ArrayList<NflResource>();
+      
       loadTeams(teams); // base teams created globally in NflScheduler
       loadGames(games); // base games created globally in NflScheduler
+      loadResources();
       partialSchedules = new NflPartialScheduleEntry[NflDefs.numberOfWeeks];
 
       restrictedGames = new ArrayList<NflRestrictedGame>();
@@ -135,16 +142,17 @@ public class NflScheduler {
           System.exit(1);
       }
 
+      schedules = new ArrayList<NflSchedule>();
+      // ------------------------------------------------------
+
       //---------- Schedule Initialization --------------------
       // initialize unscheduledGames of the baseSchedule from all the modeled games
       baseSchedule = new NflSchedule();
-      //createTeams(games, baseSchedule);
-      baseSchedule.createTeamSchedules(teams);
-      baseSchedule.createGameSchedules(games);
-      baseSchedule.populateOpponentByes();
+      baseSchedule.init(teams, games, resources);
+      schedules.add(baseSchedule);
+      // ------------------------------------------------------
       
-      loadResources(baseSchedule);
-      
+      // ----------- debug output -----------------------------
       System.out.println("Creating new nflScheduler");
       System.out.println("numberOfWeeks: " + NflDefs.numberOfWeeks);
       System.out.println("games size is: " + games.size());
@@ -154,18 +162,19 @@ public class NflScheduler {
       // Dump loaded and distributed team data
       System.out.println("games length is: " + games.size());
       System.out.println("restrictedGames length is: " + restrictedGames.size());
-      System.out.println("baseSchedule.teams size is: " + baseSchedule.teams.size());
+      System.out.println("baseSchedule.teams size is: " + baseSchedule.teamSchedules.size());
       
-      for (int i=0; i < baseSchedule.teams.size(); i++) {
-         NflTeamSchedule teamSchedule = baseSchedule.teams.get(i);
+      for (int i=0; i < baseSchedule.teamSchedules.size(); i++) {
+         NflTeamSchedule teamSchedule = baseSchedule.teamSchedules.get(i);
          System.out.println("team: " + i + ", " + teamSchedule.team.teamName);
       }
 
       // Dump the resource data
-      System.out.println("attr limit length is: " + baseSchedule.resources.size());
-      System.out.println("attr limit (1) intervals length is: " + baseSchedule.resources.get(0).weeklyLimit.length);
-      System.out.println("attr limit[1].weeklyLimit[1] is: " + baseSchedule.resources.get(0).weeklyLimit.length);
-      System.out.println("attr limit[1].weeklyLimit[numberOfWeeks] is: " + baseSchedule.resources.get(0).weeklyLimit.length);
+      System.out.println("attr limit length is: " + baseSchedule.resourceSchedules.size());
+      System.out.println("attr limit (1) intervals length is: " + resources.get(0).weeklyLimit.length);
+      System.out.println("attr limit[1].weeklyLimit[1] is: " + resources.get(0).weeklyLimit.length);
+      System.out.println("attr limit[1].weeklyLimit[numberOfWeeks] is: " + resources.get(0).weeklyLimit.length);
+      // ------------------------------------------------------
 
       reschedLog = new ArrayList<String>();
 
@@ -441,7 +450,7 @@ public class NflScheduler {
    // load the set of attribute limits from file nflattrlimits.csv into the base schedule
    // GiantsJetsStadium,0,1
 
-   public static boolean loadResources (NflSchedule schedule) {
+   public static boolean loadResources () {
       String csvFile = "nflresources.csv";
       BufferedReader br = null;
       String line = "";
@@ -455,8 +464,8 @@ public class NflScheduler {
 
             String attrName = token[0];
             NflResource resource = null;
-            for (int al=0; al < schedule.resources.size(); al++) {
-               NflResource aLim = baseSchedule.resources.get(al);
+            for (int al=0; al < resources.size(); al++) {
+               NflResource aLim = resources.get(al);
                if (aLim.resourceName.equalsIgnoreCase(attrName)) {
                   System.out.println("aLim.attrName: " + aLim.resourceName + " == " + " attrname: " + attrName + ", so reusing");
                   resource = aLim;
@@ -467,22 +476,24 @@ public class NflScheduler {
             if (resource == null) {
                 System.out.println("creating a new nflAttrLimit " + token[0]);
                 resource = new NflResource();
-                schedule.resources.add(resource);
+                resources.add(resource);
             }
 
             resource.resourceName = token[0];
-            resource.weekNum = Integer.parseInt(token[1]);
-            System.out.println("    weekNum " + resource.weekNum);
-            System.out.println("    weeklyLimit size " + resource.weeklyLimit.length);
+            // resource.weekNum = Integer.parseInt(token[1]);
+            int weekNum = Integer.parseInt(token[1]);
+            // System.out.println("    weekNum " + resource.weekNum);
+            System.out.println("    weekNum " + weekNum);
+            // System.out.println("    weeklyLimit size " + resource.weeklyLimit.length);
             //attrLimit.weeklyLimit.set(attrLimit.weekNum-1,Integer.parseInt(token[2]));
-            resource.weeklyLimit[resource.weekNum-1] = Integer.parseInt(token[2]);
-            resource.weeklyMinimum[resource.weekNum-1] = 0;
+            resource.weeklyLimit[weekNum-1] = Integer.parseInt(token[2]);
+            resource.weeklyMinimum[weekNum-1] = 0;
             if (token.length > 3) {
-            	   resource.weeklyMinimum[resource.weekNum-1] = Integer.parseInt(token[3]);
+               resource.weeklyMinimum[weekNum-1] = Integer.parseInt(token[3]);
             }
 
             System.out.println("line token length: " + token.length);
-            System.out.println("AttrLimit: " + resource.resourceName + " :" + resource.weekNum + " : " + resource.weeklyLimit[resource.weekNum-1]);
+            ///System.out.println("AttrLimit: " + resource.resourceName + " : " + resource.weekNum + " : " + resource.weeklyLimit[resource.weekNum-1] + " : " + resource.weeklyMinimum[resource.weekNum-1]);
          }
       } catch (FileNotFoundException e) {
          e.printStackTrace();
@@ -663,8 +674,8 @@ public class NflScheduler {
             if (homeTeam.team.stadium != null) {
                 String stadiumName = homeTeam.team.stadium;
                 
-                NflResource resource = schedule.findResource(stadiumName);
-                if (resource != null && !resource.hasCapacity(resWeekNum)) {
+                NflResourceSchedule resourceSchedule = schedule.findResource(stadiumName);
+                if (resourceSchedule != null && !resourceSchedule.hasCapacity(resWeekNum)) {
                     qualified = false;
                 }
             }
@@ -776,17 +787,17 @@ public class NflScheduler {
          if (homeTeam.team.stadium != null) {
             String stadiumName = homeTeam.team.stadium;
           
-            NflResource resource = schedule.findResource(stadiumName);
-            if (resource != null && resource.hasCapacity(weekNum)) {
-               resource.usage[weekNum-1] += 1;
+            NflResourceSchedule resourceSchedule = schedule.findResource(stadiumName);
+            if (resourceSchedule != null && resourceSchedule.hasCapacity(weekNum)) {
+            	resourceSchedule.usage[weekNum-1] += 1;
             }
          }
       }
       else {
          // reduce the bye resource count
-         NflResource byeResource = schedule.findResource("bye");
-         if (byeResource != null && byeResource.hasCapacity(weekNum)) {
-        	 byeResource.usage[weekNum-1] += 1;
+    	  NflResourceSchedule byeResourceSchedule = schedule.findResource("bye");
+         if (byeResourceSchedule != null && byeResourceSchedule.hasCapacity(weekNum)) {
+        	 byeResourceSchedule.usage[weekNum-1] += 1;
          }
       }
       
@@ -816,8 +827,8 @@ public class NflScheduler {
          
          // loop through the teams in the schedule
          // start line with teamname
-         for (int ti=0; ti < schedule.teams.size(); ti++) {
-            NflTeamSchedule teamSchedule = schedule.teams.get(ti);
+         for (int ti=0; ti < schedule.teamSchedules.size(); ti++) {
+            NflTeamSchedule teamSchedule = schedule.teamSchedules.get(ti);
             // loop through the scheduledGames array
             // append "," to the line
             // get game from the array
@@ -872,10 +883,12 @@ public class NflScheduler {
          System.out.println("Reschedule FP collection size: " + fingerPrintCountMap.size());
          Set set = fingerPrintCountMap.entrySet();
          Iterator iterator = set.iterator();
+/*
          while(iterator.hasNext()) {
             Map.Entry mentry = (Map.Entry)iterator.next();
-            // System.out.println("FP: "+ mentry.getKey() + " Count: " + mentry.getValue());
+            System.out.println("FP: "+ mentry.getKey() + " Count: " + mentry.getValue());
          }
+*/
 
          if (reschedAttemptsMultiWeeksBack < NflDefs.reschedAttemptsMultiWeeksBackLimit) {
              System.out.println("Schedule completed");
@@ -883,6 +896,8 @@ public class NflScheduler {
          else {
              System.out.println("Schedule did not complete, lowestWeekNum: " + lowestWeekNum);
          }
+         System.out.println("    unscheduled games: " + baseSchedule.unscheduledGames.size());
+         System.out.println("    score: " + baseSchedule.score);
          
          System.out.println("Done");
 
@@ -929,7 +944,7 @@ public class NflScheduler {
       
       // TBD:Byes - determine # of bye pairs to attempt in this week
       //    byeCapacity 
-      schedule.determineNumByesForWeek(schedule, weekNum);
+      schedule.determineNumByesForWeek(weekNum);
       System.out.println("byesToScheduleThisWeek: " + schedule.byesToScheduleThisWeek + ", for week: " + weekNum);
 
       iterNum++;
@@ -952,7 +967,7 @@ public class NflScheduler {
             status = false;
             
       	    // determine unscheduled teams
-      	    for (NflTeamSchedule teamSchedule: schedule.teams) {
+      	    for (NflTeamSchedule teamSchedule: schedule.teamSchedules) {
                NflGameSchedule gameSched = teamSchedule.scheduledGames[weekNum-1];
       	       if (gameSched == null) {
       	          unscheduledTeams.add(teamSchedule);
@@ -1054,8 +1069,8 @@ public class NflScheduler {
           if (homeTeam.team.stadium != null) {
               String stadiumName = homeTeam.team.stadium;
               
-              NflResource resource = schedule.findResource(stadiumName);
-              if (resource != null && !resource.hasCapacity(weekNum)) {
+              NflResourceSchedule resourceSchedule = schedule.findResource(stadiumName);
+              if (resourceSchedule != null && !resourceSchedule.hasCapacity(weekNum)) {
                  resourcePass = false;
               }
           }
@@ -1086,7 +1101,7 @@ public class NflScheduler {
 	  }
 	  
 	  /////////////////
-	  // Bye Scheduling
+	  // Bye Scheduling (could probably=
 	  /////////////////
       if (schedule.byesToScheduleThisWeek >= 2 && schedule.unscheduledByes.size() >= 2) {
     	  //NflGameSchedule lastByeGame = scheduleNextUnrestrictedByes(schedule, weekNum);
@@ -1506,7 +1521,7 @@ public class NflScheduler {
    
    public static boolean unscheduleUnrestrictedWeek(NflSchedule schedule, int weekNum, boolean clearHistory) {
       int unscheduledGameCount = 0;
-      for (NflTeamSchedule teamSchedule: schedule.teams) {
+      for (NflTeamSchedule teamSchedule: schedule.teamSchedules) {
           NflGameSchedule gameSched = teamSchedule.scheduledGames[weekNum-1];
           if (gameSched != null && !gameSched.restrictedGame) {
              if (!unscheduleGame(gameSched, weekNum, schedule)) {
@@ -1669,18 +1684,18 @@ public class NflScheduler {
 	      if (homeTeam.team.stadium != null) {
 	         String stadiumName = homeTeam.team.stadium;
 	          
-	         NflResource resource = schedule.findResource(stadiumName);
-	         if (resource != null) {
-	            resource.usage[weekNum-1] -= 1;
+	         NflResourceSchedule resourceSchedule = schedule.findResource(stadiumName);
+	         if (resourceSchedule != null) {
+	        	 resourceSchedule.usage[weekNum-1] -= 1;
 	         }
 	      }
 	   }
 	   else {
 	      
 	      // Remove bye resource usage in weeknum
-	      NflResource resource = schedule.findResource("bye");
-	      if (resource != null) {
-	          resource.usage[weekNum-1] -= 1;
+	      NflResourceSchedule byeResourceSchedule = schedule.findResource("bye");
+	      if (byeResourceSchedule != null) {
+	    	  byeResourceSchedule.usage[weekNum-1] -= 1;
 	      }
 	      //System.out.println("unscheduled bye, weekNum: " + weekNum + " home team: " + gameSched.game.homeTeam);
 	   }
@@ -1786,7 +1801,7 @@ public class NflScheduler {
 	   ArrayList<NflGameSchedule> unscheduledGames = new ArrayList<NflGameSchedule>();
 	   ArrayList<NflGameSchedule> unscheduledByes = new ArrayList<NflGameSchedule>();
 
-	   for (NflTeamSchedule teamSchedule: schedule.teams) {
+	   for (NflTeamSchedule teamSchedule: schedule.teamSchedules) {
 		   NflGameSchedule gameSched = teamSchedule.scheduledGames[weekNum-1];
 		   if (gameSched != null) {
 			   if (gameSched.isBye) {
@@ -1921,7 +1936,7 @@ public class NflScheduler {
 	   // using the hash code of each game as a unique id of each scheduled game for this week
 	   // Also keep track of the unscheduled games for this week
 	   
-	   for (NflTeamSchedule teamSchedule: schedule.teams) {
+	   for (NflTeamSchedule teamSchedule: schedule.teamSchedules) {
 		   NflGameSchedule gameSched = teamSchedule.scheduledGames[weekNum-1];
 		   if (gameSched != null) {
 			   partialScheduleEntry.fingerPrint += (double) gameSched.hashCode()*Math.pow(NflDefs.numberOfWeeks-weekNum+1,2);

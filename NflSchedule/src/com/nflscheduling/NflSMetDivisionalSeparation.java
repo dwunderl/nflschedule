@@ -17,7 +17,7 @@ public class NflSMetDivisionalSeparation extends NflScheduleMetric {
 	public boolean computeMetric(NflSchedule schedule) {
 	      score = 0;
 	      for (int ti=1; ti <= NflDefs.numberOfTeams; ti++) {
-	         NflTeamSchedule teamSchedule = schedule.teams.get(ti-1);
+	         NflTeamSchedule teamSchedule = schedule.teamSchedules.get(ti-1);
 	         for (int wi1=1; wi1 <= 4; wi1++) {
 	            NflGameSchedule teamGame1 = teamSchedule.scheduledGames[wi1-1];
 	            

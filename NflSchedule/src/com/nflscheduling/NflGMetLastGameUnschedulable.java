@@ -18,7 +18,7 @@ public class NflGMetLastGameUnschedulable extends NflGameMetric {
  	  int unScheduledTeamCount = 0;
  	  ArrayList<NflTeamSchedule> remainingUnscheduledTeams = new ArrayList<NflTeamSchedule>();
  	  
-      for (NflTeamSchedule teamSchedule: schedule.teams) {
+      for (NflTeamSchedule teamSchedule: schedule.teamSchedules) {
          if (teamSchedule.scheduledGames[weekNum-1] == null) {
             unScheduledTeamCount++;
             if (!gameSchedule.containsTeam(teamSchedule.team.teamName)) {
