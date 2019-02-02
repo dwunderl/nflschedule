@@ -13,7 +13,8 @@ public class NflGMetDivisionalSeparation extends NflGameMetric {
 	public boolean computeMetric(int weekNum, NflSchedule schedule, ArrayList<NflGameSchedule> candidateGames) {
 		
        // ensure 1st Divisional game with a team is after week 5
-	   // if game is a divisional game, and weeknum > 5, incentivize the game if the second matchup game hasn't been scheduled yet
+       // if game is a divisional game, and weeknum > 5, incentivize the game if the second matchup game hasn't been scheduled yet
+       // if game is a divisional game, and weeknum > 5, incentivize the game if the second matchup game hasn't been scheduled yet
 	   // Otherwise a 0 score - no incentive
 		
 	   // Ensure there is not a weekNum-1 or weekNum+1 scheduled game that has the same teams
@@ -33,97 +34,48 @@ public class NflGMetDivisionalSeparation extends NflGameMetric {
 	   
        score = 0.0;
        
+       // This metric only applies to divisional games
        if (!gameSchedule.game.findAttribute("division")) {
     	   return true;
        }
 
-	   NflTeamSchedule homeTeamSched = schedule.findTeam(gameSchedule.game.homeTeam);
-	   NflTeamSchedule awayTeamSched = schedule.findTeam(gameSchedule.game.awayTeam);
-       //System.out.println("Info: No repeated match up metric for game, weekNum: " + weekNum + " home team: " + homeTeamSched.team.teamName + " away team: " + awayTeamSched.team.teamName);
-	   
-	   // Check next weeks game for no repeated matchup
-	   // be aware of byes - skip over
-	   if (weekNum+1 <= NflDefs.numberOfWeeks) {
-		  // Check next non-bye game for the current game's home team to make sure no repeat
-	      for (int wi=weekNum+1; wi <= NflDefs.numberOfWeeks; wi++) {
-	         NflGameSchedule nextWeeksHomeTeamGame = homeTeamSched.scheduledGames[wi-1]; // NOTE: weekNum starts at 1, must correct for index
-             if (nextWeeksHomeTeamGame == null) {
-            	 break;
-             }
-             
-	    	 if (nextWeeksHomeTeamGame.isBye) {
-	    		 continue;
-	    	 }
-	    	 
-             if (nextWeeksHomeTeamGame.game.awayTeam.equalsIgnoreCase(gameSchedule.game.homeTeam) &&
-            		 nextWeeksHomeTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
-                score = 10.0;
-             }
-             break;
+       // within week 5 it's too late to avoid the separation problem
+       if (weekNum <= 5) {
+    	   return true;
+       }
+       
+       // beyond week 10 it's better to let nature take it's course, maybe the first divisional game will schedule naturally
+       if (weekNum >= 10) {
+    	   return true;
+       }
+       
+       // has the other divisional game been scheduled yet - in a later week
+       // if so - no problem - otherwise - incentivize this game with a negative penalty
+       boolean divisionalPairScheduled = false;
+       
+       NflTeamSchedule teamSchedule = gameSchedule.homeTeamSchedule;
+       for (int wi=weekNum+1; wi <= NflDefs.numberOfWeeks; wi++) {
+          NflGameSchedule teamGame2 = teamSchedule.scheduledGames[wi-1];
+       
+          if (teamGame2 == null || teamGame2.isBye || !teamGame2.game.findAttribute("division")) {
+	         continue;
 	      }
-	      
-		  // Check next non-bye game for the current game's away team to make sure no repeat
-	      for (int wi=weekNum+1; wi <= NflDefs.numberOfWeeks; wi++) {
-	         NflGameSchedule nextWeeksAwayTeamGame = awayTeamSched.scheduledGames[wi-1]; // NOTE: weekNum starts at 1, must correct for index
-             if (nextWeeksAwayTeamGame == null) {
-         	    break;
-             }
-          
-	    	 if (nextWeeksAwayTeamGame.isBye) {
-	    		 continue;
-	    	 }
-	    	 
-             if (nextWeeksAwayTeamGame.game.awayTeam.equalsIgnoreCase(gameSchedule.game.homeTeam) &&
-        		    nextWeeksAwayTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
-                score = 10.0;
-             }
-             break;
-	      }
-	   }
-	   	   
-	   // Check previous weeks game for no repeated matchup
-	   // be aware of byes - skip over
-	   
-	   if (weekNum > 1) {
-	      // Check the previous non-bye game for the current game's home team to make sure no repeat
-	      for (int wi=weekNum-1; wi >= 1; wi--) {
-             NflGameSchedule prevWeeksHomeTeamGame = homeTeamSched.scheduledGames[wi-1]; // NOTE: weekNum starts at 1, must correct for index
-             if (prevWeeksHomeTeamGame == null) {
-            	 break;
-             }
-             
-	    	 if (prevWeeksHomeTeamGame.isBye) {
-	    		 continue;
-	    	 }
-	    	 
-             if (prevWeeksHomeTeamGame.game.awayTeam.equalsIgnoreCase(gameSchedule.game.homeTeam) &&
-            		 prevWeeksHomeTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
-                score = 10.0;
-             }
-             break;
-	      }
-	      
-	      // Check the previous non-bye game for the current game's away team to make sure no repeat
-	      for (int wi=weekNum-1; wi >= 1; wi--) {
-	         NflGameSchedule prevWeeksAwayTeamGame = awayTeamSched.scheduledGames[wi-1]; // NOTE: weekNum starts at 1, must correct for index
-	         if (prevWeeksAwayTeamGame == null) {
-	            break;
-	         }
-	             
-		     if (prevWeeksAwayTeamGame.isBye) {
-		        continue;
-		     }
-		    	 
-	         if (prevWeeksAwayTeamGame.game.awayTeam.equalsIgnoreCase(gameSchedule.game.homeTeam) &&
-	        		 prevWeeksAwayTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
-	            score = 10.0;
-	         }
-	         break;
-		  }
-	   }
-	   
-	   //System.out.println("Info: No Repeated Matchup metric for game, weekNum: " + weekNum + " home team: " + gameSchedule.game.homeTeam + " away team: " + gameSchedule.game.awayTeam
-       //           + ", score: " + score);
+       
+          if (gameSchedule.game.awayTeam.equalsIgnoreCase(teamGame2.game.homeTeam) &&
+              gameSchedule.game.homeTeam.equalsIgnoreCase(teamGame2.game.awayTeam)) {
+        	  divisionalPairScheduled = true;
+        	  break;
+          }
+       }
+       
+       if (divisionalPairScheduled) {
+    	   return true;
+       }
+       
+       // score incentivizes the game in a sliding scale where week 6 is the most urgent
+       
+       score = -(10-weekNum);
+       
 	   return true;
 	}
 }

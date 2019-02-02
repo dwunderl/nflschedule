@@ -76,17 +76,17 @@ public class NflGMetStadiumResource extends NflGameMetric {
       // then if they have a game already scheduled this week - count as home or away
       for (NflTeamSchedule teamSched: schedule.teamSchedules) {
 	     if (teamSched.team.stadium == null) continue;
-    	     if (teamSched.team.stadium.equalsIgnoreCase(stadiumResourceSchedule.resource.resourceName)) {
+    	    if (teamSched.team.stadium.equalsIgnoreCase(stadiumResourceSchedule.resource.resourceName)) {
             NflGameSchedule thisWeeksGame = teamSched.scheduledGames[weekNum-1];
-    	        if (thisWeeksGame != null) {
-    	           if (thisWeeksGame.game.homeTeam.equalsIgnoreCase(teamSched.team.teamName)) {
-    	    	          homeGamesScheduledThisWeek++;
-    	           }
-    	           else {
-    	              awayGamesScheduledThisWeek++;
-    	           }
-    	        }
-    	     }
+    	    if (thisWeeksGame != null) {
+    	       if (thisWeeksGame.game.homeTeam.equalsIgnoreCase(teamSched.team.teamName)) {
+    	    	  homeGamesScheduledThisWeek++;
+    	       }
+    	       else {
+    	          awayGamesScheduledThisWeek++;
+    	       }
+    	    }
+    	 }
       }
       
       // Calculate the metric penalty

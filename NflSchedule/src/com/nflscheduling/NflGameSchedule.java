@@ -55,14 +55,23 @@ public class NflGameSchedule {
       metrics.add(metricRTL);
       NflGMetHomeStandLimit metricHSL = new NflGMetHomeStandLimit("HomeStandLimit", this);
       metrics.add(metricHSL);
-      //NflGMetRemainingOpportunities metricRO = new NflGMetRemainingOpportunities("RemainingOpportunities", this);
-      //metrics.add(metricRO);
       NflGMetLastGameUnschedulable metricLGUS = new NflGMetLastGameUnschedulable("LastGameUnschedulable", this);
       metrics.add(metricLGUS);
       NflGMetBalancedHomeAway metricBalHA = new NflGMetBalancedHomeAway("BalancedHomeAway", this);
       metrics.add(metricBalHA);
       NflGMetStadiumResource metricStdRes = new NflGMetStadiumResource("StadiumResource", this);
       metrics.add(metricStdRes);
+      NflGMetDivisionalWeekLimits metricDivWkLim = new NflGMetDivisionalWeekLimits("DivisionalWeekLimits", this);
+      metrics.add(metricDivWkLim);
+      NflGMetDivisionalSeparation metricDivSep = new NflGMetDivisionalSeparation("DivisionalSeparation", this);
+      metrics.add(metricDivSep);
+      
+      // scheduling success is severely degraded with this new metric
+      NflGMetBalancedDivisional metricBalDiv = new NflGMetBalancedDivisional("BalancedDivisional", this);
+      metrics.add(metricBalDiv);
+
+      //NflGMetRemainingOpportunities metricRO = new NflGMetRemainingOpportunities("RemainingOpportunities", this);
+      //metrics.add(metricRO);
       
       return true;
    }

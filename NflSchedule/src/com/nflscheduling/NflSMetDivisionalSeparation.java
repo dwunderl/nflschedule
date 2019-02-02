@@ -15,32 +15,38 @@ public class NflSMetDivisionalSeparation extends NflScheduleMetric {
 	
 	@Override
 	public boolean computeMetric(NflSchedule schedule) {
-	      score = 0;
-	      for (int ti=1; ti <= NflDefs.numberOfTeams; ti++) {
-	         NflTeamSchedule teamSchedule = schedule.teamSchedules.get(ti-1);
-	         for (int wi1=1; wi1 <= 4; wi1++) {
-	            NflGameSchedule teamGame1 = teamSchedule.scheduledGames[wi1-1];
-	            
-	            if (teamGame1 == null || teamGame1.isBye || !teamGame1.game.findAttribute("division")) {
-		           continue;
-		        }
+      score = 0;
+      for (int ti=1; ti <= NflDefs.numberOfTeams; ti++) {
+         NflTeamSchedule teamSchedule = schedule.teamSchedules.get(ti-1);
+         for (int wi1=1; wi1 <= 4; wi1++) {
+            NflGameSchedule teamGame1 = teamSchedule.scheduledGames[wi1-1];
+            
+            if (teamGame1 == null || teamGame1.isBye || !teamGame1.game.findAttribute("division")) {
+	           continue;
+	        }
 
-		        for (int wi2=1; wi2 <= 4; wi2++) {
-			       NflGameSchedule teamGame2 = teamSchedule.scheduledGames[wi2-1];
-			       
-		           if (teamGame2 == null || teamGame2.isBye || !teamGame2.game.findAttribute("division")) {
-				      continue;
-				   }
-		           
-		           if (teamGame1.game.awayTeam.equalsIgnoreCase(teamGame2.game.homeTeam) &&
-		               teamGame1.game.homeTeam.equalsIgnoreCase(teamGame2.game.awayTeam)) {
-		               score+= 2.0;
-		    		   System.out.println("ScheduleMetric : DivisionalSeparation alert for weeks: " + wi1 + ", " + wi2 + " teams: " + teamGame1.game.homeTeam + ", " + teamGame1.game.awayTeam);
-		           }
-		        }
-	         }
-	      }
+	        for (int wi2=wi1+1; wi2 <= 5; wi2++) {
+		       NflGameSchedule teamGame2 = teamSchedule.scheduledGames[wi2-1];
+		       
+	           if (teamGame2 == null || teamGame2.isBye || !teamGame2.game.findAttribute("division")) {
+			      continue;
+			   }
+	           
+	           if (teamGame1.game.awayTeam.equalsIgnoreCase(teamGame2.game.homeTeam) &&
+	               teamGame1.game.homeTeam.equalsIgnoreCase(teamGame2.game.awayTeam)) {
+	               score+= 2.0;
+	    		   System.out.println("ScheduleMetric : DivisionalSeparation alert for weeks: " + wi1 + ", " + wi2 + " teams: " + teamGame1.game.homeTeam + ", " + teamGame1.game.awayTeam);
+	    		   NflScheduleAlert alert = new NflScheduleAlert();
+	    		   alert.alertDescr = metricName;
+	    		   alert.weekNum = wi2;
+	    		   alert.homeTeam = teamGame2.game.homeTeam;
+	    		   alert.awayTeam = teamGame2.game.awayTeam;
+	    		   schedule.alerts.add(alert);
+	           }
+	        }
+         }
+      }
 
-	      return true;
+      return true;
 	}
 }

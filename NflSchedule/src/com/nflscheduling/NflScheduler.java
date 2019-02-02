@@ -12,27 +12,29 @@ import java.io.IOException;
 public class NflScheduler {
 
    // Algorithm Top Level is in the static main function
-   // baseSchedule holds the partial schedule (so far)
+   // curSchedule holds the partial schedule (so far)
 	
-	   public static ArrayList<NflSchedule> schedules;         // schedule[i].teams holds the partial schedule
+   // Instance data
+
+   public ArrayList<NflSchedule> schedules;         // schedule[i].teams holds the partial schedule
 	   
-	   public static NflSchedule baseSchedule;                 // baseSchedule.teams holds the partial schedule
+   public NflSchedule curSchedule;                 // curSchedule.teams holds the partial schedule
                                                                // Each team has an array of scheduled games - 1 per week
                                                                // Byes are scheduled games marked with isBye=true
                                                                // Holds arrays of allGames, unscheduledGames, unscheduledByes
    
   
-   public static ArrayList<NflRestrictedGame> restrictedGames; // The restrictedGames are games forced into fixed/specified weeks
+   public ArrayList<NflRestrictedGame> restrictedGames; // The restrictedGames are games forced into fixed/specified weeks
                                                                // Some are pre-defined in file nflforcedgames.csv
    
-   public static ArrayList<NflResource> resources;
-   public static ArrayList<NflGame> games;      // base class instances of games - to be turned in NflGameSchedule instances
+   public ArrayList<NflResource> resources;
+   public ArrayList<NflGame> games;      // base class instances of games - to be turned in NflGameSchedule instances
                                                 // loaded from nflgames.csv within function loadGames()
    
-   public static ArrayList<NflTeam> teams;      // base class instances of teams - to be turned into NflTeamSchedule instances
+   public ArrayList<NflTeam> teams;      // base class instances of teams - to be turned into NflTeamSchedule instances
                                                 // loaded from nflteams.csv within function loadTeams()
    
-   public static int reschedWeekNum = 0;        // TBD: Not set or used, except as a final logging output (in this file)
+   public int reschedWeekNum = 0;        // TBD: Not set or used, except as a final logging output (in this file)
                                                 // could be removed
       
    // reschedLog - log of each reschedule event - when fail to complete a week and need to backtrack
@@ -40,15 +42,15 @@ public class NflScheduler {
    //            - ought to divide reschedLog lines by 2 to get number of failures requiring backtracking - when logging "Rescheduled Weeks:"
    // 
    
-   public static ArrayList<String> reschedLog;
+   public ArrayList<String> reschedLog;
 
-   public static int reschedAttemptsSameWeek;       // retries in same week before giving up and going back 1 week
+   public int reschedAttemptsSameWeek;       // retries in same week before giving up and going back 1 week
                                                     // unschedule the failed week, demote a game and retry the week
    
-   public static int reschedAttemptsOneWeekBack;    // retries 1 week back before going back multiple weeks
+   public int reschedAttemptsOneWeekBack;    // retries 1 week back before going back multiple weeks
                                                     // unschedule the failed week and previous week, demote a game and retry the previous week
    
-   public static int reschedAttemptsMultiWeeksBack; // retries multiple weeks back before giving up completely
+   public int reschedAttemptsMultiWeeksBack; // retries multiple weeks back before giving up completely
                                                     // unschedule the failed week and series of weeks, demote a game and retry the earliest unsched week
    
    //  Demotion Scheme: TBD document it
@@ -70,18 +72,18 @@ public class NflScheduler {
     *                   
     */
 
-   public static Random rnd = new Random();
+   public Random rnd = new Random();
    
    // logging of algorithm progress and histories
-   public static int lowestWeekNum = 1000;         
-   public static int iterNum = 0;
+   public int lowestWeekNum = 1000;         
+   public int iterNum = 0;
    
    // partialSchedules
    //    Array season weeks - summarizes the partial schedule for each scheduled week so far
    //    Each partial schedule entry has the fingerprint (# summary) sum of all the weighted fingerprints for each week
    //    Also has iterNum, weekNum, unscheduledTeams (?)
    
-   public static NflPartialScheduleEntry[] partialSchedules;
+   public NflPartialScheduleEntry[] partialSchedules;
    
    // fingerPrintCountMap
    //    Keeps track of each unique fully scheduled week as a partial schedule fingerprint and a repeat count
@@ -101,35 +103,29 @@ public class NflScheduler {
    //           Don't add new or updated entry to fingerPrintCountMap, unnecessarily calculates partialScheduleEntry
    //           and unnecessarily updates schedule.latestScheduleFingerPrint
 
-   public static HashMap<Double, Integer> fingerPrintCountMap = new HashMap<Double, Integer>();
+   public HashMap<Double, Integer> fingerPrintCountMap = new HashMap<Double, Integer>();
    
-   public static int fpSkipCount = 0;   // Counts number of repeated encounters of a FingerPrint after completing a fully scheduled week
+   public int fpSkipCount = 0;   // Counts number of repeated encounters of a FingerPrint after completing a fully scheduled week
                                         // Each encounter is failed, causing a backtrack rescheduling attempt
    
    // unscheduledTeams - after failure of a week, the unscheduledTeams in that week are given first priority during the next weekly schedule
    // TBD: study and rethink if this really makes any real sense
    
-   public static ArrayList<NflTeamSchedule> unscheduledTeams = new ArrayList<NflTeamSchedule>();
+   public ArrayList<NflTeamSchedule> unscheduledTeams = new ArrayList<NflTeamSchedule>();
 
-   public static BufferedWriter briefLogBw = null;
-   public static FileWriter briefLogFw = null;
-   public static BufferedWriter partialScheduleLogBw = null;
-   public static FileWriter partialScheduleLogFw = null;
+   public BufferedWriter briefLogBw = null;
+   public FileWriter briefLogFw = null;
+   public BufferedWriter partialScheduleLogBw = null;
+   public FileWriter partialScheduleLogFw = null;
 
    
-   public static void main(String[] args) {
-      // Prints "Hello, World" in the terminal window.
-      System.out.println("Hello, World");
-
-      // ---------- Scheduler Initialization ------------------
-      NflScheduler scheduler = new NflScheduler();
-      
+   public boolean init() {
       loadParams();                                 // load from nflparams.csv: NflDefs.numberOfWeeks, NflDefs.numberOfTeams
-                                                    // resched limit params are hard-coded in here, TBD: should get from a file
+      // resched limit params are hard-coded in here, TBD: should get from a file
       games = new ArrayList<NflGame>();
       teams = new ArrayList<NflTeam>();
       resources = new ArrayList<NflResource>();
-      
+
       loadTeams(teams); // base teams created globally in NflScheduler
       loadGames(games); // base games created globally in NflScheduler
       loadResources();
@@ -138,19 +134,11 @@ public class NflScheduler {
       restrictedGames = new ArrayList<NflRestrictedGame>();
       if (!loadForcedGames(restrictedGames))
       {
-          System.out.println("ERROR loading restricted games");
-          System.exit(1);
+         System.out.println("ERROR loading restricted games");
+         System.exit(1);
       }
 
       schedules = new ArrayList<NflSchedule>();
-      // ------------------------------------------------------
-
-      //---------- Schedule Initialization --------------------
-      // initialize unscheduledGames of the baseSchedule from all the modeled games
-      baseSchedule = new NflSchedule();
-      baseSchedule.init(teams, games, resources);
-      schedules.add(baseSchedule);
-      // ------------------------------------------------------
       
       // ----------- debug output -----------------------------
       System.out.println("Creating new nflScheduler");
@@ -162,38 +150,82 @@ public class NflScheduler {
       // Dump loaded and distributed team data
       System.out.println("games length is: " + games.size());
       System.out.println("restrictedGames length is: " + restrictedGames.size());
-      System.out.println("baseSchedule.teams size is: " + baseSchedule.teamSchedules.size());
+
+      return true;
+   }
+   
+   public boolean scheduleInit() {
+      curSchedule = new NflSchedule();
+	  curSchedule.init(teams, games, resources);
+	      
+	  // Debug output for initial schedule basic structural info
+	  // ------------------------------------------------------
+	  System.out.println("curSchedule.teams size is: " + curSchedule.teamSchedules.size());
+	      
+	  for (int i=0; i < curSchedule.teamSchedules.size(); i++) {
+	     NflTeamSchedule teamSchedule = curSchedule.teamSchedules.get(i);
+	     System.out.println("team: " + i + ", " + teamSchedule.team.teamName);
+	  }
+
+	  // Dump the resource data
+	  System.out.println("attr limit length is: " + curSchedule.resourceSchedules.size());
+	  System.out.println("attr limit (1) intervals length is: " + resources.get(0).weeklyLimit.length);
+	  System.out.println("attr limit[1].weeklyLimit[1] is: " + resources.get(0).weeklyLimit.length);
+	  System.out.println("attr limit[1].weeklyLimit[numberOfWeeks] is: " + resources.get(0).weeklyLimit.length);
+	  // ------------------------------------------------------
+
+	  return true;
+   }
+   
+   public boolean generateSchedules() {
+	  reschedLog = new ArrayList<String>();
+      //---------- Schedule Initialization --------------------
+      // create next curSchedule
+	  // initialize unscheduledGames of the curSchedule from all the modeled games
+	int scheduleAttempts;
+	
+	for (scheduleAttempts = 0; scheduleAttempts < NflDefs.scheduleAttempts; scheduleAttempts++) {
+	      scheduleInit();
+	
+		  // Schedule games that are restricted - according to the restrictedGames
+		  scheduleForcedGames(restrictedGames, curSchedule);
+	
+		  // Schedule the remaining unrestricted games
+		  scheduleUnrestrictedGames(curSchedule);
+	
+		      
+		  closeBriefLogFile();
+		  closePartialScheduleLogFile();
+	
+		  System.out.println("Total Schedule Metric: " + curSchedule.score);
+		  if (curSchedule.unscheduledGames.size() == 0) {
+			  schedules.add(curSchedule);
+			  curSchedule.computeMetrics();
+			  writeScheduleCsv(curSchedule, "curSchedule" + schedules.size() + ".csv");
+		  }
+	  }
+	  
+	  int sCount = 0;
+	  for(NflSchedule s: schedules) {
+		 sCount++;
+		 System.out.println("Schedule: " + sCount + ", Total Schedule Metric: " + s.score + " Total Alerts: " + s.alerts.size());
+	  }
+	  
+	  return true;
+   }
+
+   public static void main(String[] args) {
+      // Prints "Hello, World" in the terminal window.
+      System.out.println("Hello, World");
+
+      // ---------- Scheduler Initialization ------------------
+      NflScheduler scheduler = new NflScheduler();
       
-      for (int i=0; i < baseSchedule.teamSchedules.size(); i++) {
-         NflTeamSchedule teamSchedule = baseSchedule.teamSchedules.get(i);
-         System.out.println("team: " + i + ", " + teamSchedule.team.teamName);
-      }
-
-      // Dump the resource data
-      System.out.println("attr limit length is: " + baseSchedule.resourceSchedules.size());
-      System.out.println("attr limit (1) intervals length is: " + resources.get(0).weeklyLimit.length);
-      System.out.println("attr limit[1].weeklyLimit[1] is: " + resources.get(0).weeklyLimit.length);
-      System.out.println("attr limit[1].weeklyLimit[numberOfWeeks] is: " + resources.get(0).weeklyLimit.length);
-      // ------------------------------------------------------
-
-      reschedLog = new ArrayList<String>();
-
+      scheduler.init();
+ 
       // ------------ Scheduling -------------
-      // Schedule games that are restricted - according to the restrictedGames
-      scheduleForcedGames(restrictedGames, baseSchedule);
-
-      // Schedule the remaining unrestricted games
-      scheduleUnrestrictedGames(baseSchedule);
-
-      baseSchedule.computeMetrics();
-
-      writeScheduleCsv(baseSchedule, "baseschedule.csv");
       
-      closeBriefLogFile();
-      closePartialScheduleLogFile();
-
-      System.out.println("Total Schedule Metric: " + baseSchedule.score);
-
+      scheduler.generateSchedules();
    }
 
    NflScheduler() {
@@ -202,7 +234,7 @@ public class NflScheduler {
    // load the full set of games into the static global list of games
    // from the file nflgames.csv
 
-   public static boolean loadParams() {
+   public boolean loadParams() {
       String csvFile = "nflparams.csv";
       BufferedReader br = null;
       String line = "";
@@ -250,6 +282,13 @@ public class NflScheduler {
                    }
                    System.out.println("loadParams: reschedAttemptsSameWeekLimit set to " + NflDefs.reschedAttemptsSameWeekLimit);
                 }
+         	   else if (token[0].equalsIgnoreCase("scheduleAttempts")) {
+                   NflDefs.scheduleAttempts = Integer.parseInt(token[1]);
+                   if (NflDefs.scheduleAttempts <= 0 || NflDefs.scheduleAttempts > 100) {
+                      System.out.println("loadParams: scheduleAttempts invalid" + NflDefs.scheduleAttempts);
+                   }
+                   System.out.println("loadParams: scheduleAttempts set to " + NflDefs.scheduleAttempts);
+                }
             }
          }
       } catch (FileNotFoundException e) {
@@ -269,7 +308,7 @@ public class NflScheduler {
      return true;
    }
    
-   public static boolean loadTeams(ArrayList<NflTeam> teams) {
+   public boolean loadTeams(ArrayList<NflTeam> teams) {
       String csvFile = "nflteams.csv";
       BufferedReader br = null;
       String line = "";
@@ -313,7 +352,7 @@ public class NflScheduler {
      return true;
    }
    
-   public static boolean loadGames(ArrayList<NflGame> games) {
+   public boolean loadGames(ArrayList<NflGame> games) {
       String csvFile = "nflgames.csv";
       BufferedReader br = null;
       String line = "";
@@ -364,7 +403,7 @@ public class NflScheduler {
      return true;
    }
   
-   public static boolean clearGameWeeknums(ArrayList<NflGame> games) {
+   public boolean clearGameWeeknums(ArrayList<NflGame> games) {
       for (int gi=0; gi < games.size(); gi++) {
          NflGame game = games.get(gi);
          //game.weekNum = 0;
@@ -377,7 +416,7 @@ public class NflScheduler {
    // from the file nflforcedgames.csv
    // Buccaneers,4,Mexico
 
-   public static boolean loadForcedGames(ArrayList<NflRestrictedGame> weeks) {
+   public boolean loadForcedGames(ArrayList<NflRestrictedGame> weeks) {
       String csvFile = "nflforcedgames.csv";
       BufferedReader br = null;
       String line = "";
@@ -410,12 +449,12 @@ public class NflScheduler {
             
             if (teamName.equalsIgnoreCase("all"))
             {
-                // for (int ti=0; ti < baseSchedule.teams.size(); ti++) {
+                // for (int ti=0; ti < curSchedule.teams.size(); ti++) {
                 for (int ti=0; ti < teams.size(); ti++) {
-                  // NflTeamSchedule teamSchedule = baseSchedule.teams.get(ti);
+                  // NflTeamSchedule teamSchedule = curSchedule.teams.get(ti);
                   // NflRestrictedGame restrictedGame = new NflRestrictedGame(teamSchedule.team.teamName, weekNum, restriction, otherTeamName, stadium);
-                   NflTeam team = teams.get(ti);
-                   NflRestrictedGame restrictedGame = new NflRestrictedGame(team.teamName, weekNum, restriction, otherTeamName, stadium);
+                  NflTeam team = teams.get(ti);
+                  NflRestrictedGame restrictedGame = new NflRestrictedGame(team.teamName, weekNum, restriction, otherTeamName, stadium);
                   weeks.add(restrictedGame);
 
                   System.out.println("line token length: " + token.length);
@@ -450,7 +489,7 @@ public class NflScheduler {
    // load the set of attribute limits from file nflattrlimits.csv into the base schedule
    // GiantsJetsStadium,0,1
 
-   public static boolean loadResources () {
+   public boolean loadResources () {
       String csvFile = "nflresources.csv";
       BufferedReader br = null;
       String line = "";
@@ -522,7 +561,7 @@ public class NflScheduler {
    // test by quiting after scheduling restricted games, and see that all the byes made it onto the schedule
    // 
    
-   public static boolean scheduleForcedGames(ArrayList<NflRestrictedGame> restrictedGames, NflSchedule schedule) {      
+   public boolean scheduleForcedGames(ArrayList<NflRestrictedGame> restrictedGames, NflSchedule schedule) {      
       // for each restricted game
       // Currently support (only) the hometeam and division restrictions for a given week
       // Also support an optional named opponent - otherwise the scheduler will choose the opponent
@@ -731,7 +770,7 @@ public class NflScheduler {
    // at the index of weekNum in the scheduleGames array of each Team
    // set the game.weeknum = weeknum for temporary working purposes (reevaluate the usefulness of that)
    
-   public static boolean placeGameInSchedule(NflGameSchedule usGame, int weekNum, NflSchedule schedule) {
+   public boolean placeGameInSchedule(NflGameSchedule usGame, int weekNum, NflSchedule schedule) {
       // find the hometeam and the awayteam
        
       NflTeamSchedule homeTeam = usGame.homeTeamSchedule;
@@ -804,7 +843,7 @@ public class NflScheduler {
       return true;
    }
    
-   public static boolean writeScheduleCsv(NflSchedule schedule, String fileName) {
+   public boolean writeScheduleCsv(NflSchedule schedule, String fileName) {
       System.out.println("Entered writeScheduleCsv");
       BufferedWriter bw = null;
       FileWriter fw = null;
@@ -850,10 +889,12 @@ public class NflScheduler {
                    bw.write(",Bye");
                }
                else if (gameSchedule.game.homeTeam.equalsIgnoreCase(teamSchedule.team.teamName)) {
-                   bw.write("," + gameSchedule.game.awayTeam + "." + gameSchedule.weekScheduleSequence);
+                   bw.write("," + gameSchedule.game.awayTeam);
+                   //bw.write("," + gameSchedule.game.awayTeam + "." + gameSchedule.weekScheduleSequence);
                }
                else {
-                   bw.write(",at " + gameSchedule.game.homeTeam + "." + gameSchedule.weekScheduleSequence);
+                   bw.write(",at " + gameSchedule.game.homeTeam);
+                   //bw.write(",at " + gameSchedule.game.homeTeam + "." + gameSchedule.weekScheduleSequence);
                }
                
                if (gameSchedule != null && gameSchedule.stadium != null && gameSchedule.stadium.equalsIgnoreCase("london")) {
@@ -871,6 +912,26 @@ public class NflScheduler {
             //System.out.println("team: " + ti + ", " + teamSchedule.team.teamName + ", scheduledGames: " + scheduledGameCount);
          }
          
+         // Write out the schedule score
+         bw.write("\nScore," + schedule.score + "\n");
+
+         // Write out Divisional Game Counts
+         
+         bw.write("\nDivisional Games");
+  	     for (int wi=1; wi <= NflDefs.numberOfWeeks; wi++) {
+ 		    int divisionalGameCount = schedule.divisionalGameCount(wi);
+            bw.write("," + divisionalGameCount);
+  	     }
+  	     
+         // Write out Alerts
+         if (!schedule.alerts.isEmpty()) {
+            bw.write("\nAlert,week,home,away\n");
+            for(NflScheduleAlert alert: schedule.alerts) {
+                bw.write(alert.alertDescr + "," + alert.weekNum + "," + alert.homeTeam + "," + alert.awayTeam + "\n");
+            }
+         }
+         bw.write("\n");
+
          System.out.println("reschedWeekNum: " + reschedWeekNum);
          
          if (!reschedLog.isEmpty()) {
@@ -896,8 +957,8 @@ public class NflScheduler {
          else {
              System.out.println("Schedule did not complete, lowestWeekNum: " + lowestWeekNum);
          }
-         System.out.println("    unscheduled games: " + baseSchedule.unscheduledGames.size());
-         System.out.println("    score: " + baseSchedule.score);
+         System.out.println("    unscheduled games: " + curSchedule.unscheduledGames.size());
+         System.out.println("    score: " + curSchedule.score);
          
          System.out.println("Done");
 
@@ -935,7 +996,7 @@ public class NflScheduler {
 
  */
    
-   public static boolean scheduleUnrestrictedWeek(NflSchedule schedule, int weekNum) {
+   public boolean scheduleUnrestrictedWeek(NflSchedule schedule, int weekNum) {
       NflGameSchedule game;
       NflGameSchedule bye;
 	  int schedTeamsInWeek;
@@ -945,7 +1006,7 @@ public class NflScheduler {
       // TBD:Byes - determine # of bye pairs to attempt in this week
       //    byeCapacity 
       schedule.determineNumByesForWeek(weekNum);
-      System.out.println("byesToScheduleThisWeek: " + schedule.byesToScheduleThisWeek + ", for week: " + weekNum);
+      //System.out.println("byesToScheduleThisWeek: " + schedule.byesToScheduleThisWeek + ", for week: " + weekNum);
 
       iterNum++;
 	  //unscheduledTeams.clear();
@@ -1008,7 +1069,7 @@ public class NflScheduler {
    }
    
    // possibly modularize this function to facilitate scheduling a game and/or scheduling a bye
-   public static NflGameSchedule scheduleNextUnrestrictedGameInWeek(NflSchedule schedule, int weekNum) {
+   public NflGameSchedule scheduleNextUnrestrictedGameInWeek(NflSchedule schedule, int weekNum) {
       // Make a collection of unscheduled games
 	  // where none of the teams are scheduled for this week
 	   
@@ -1136,7 +1197,7 @@ public class NflScheduler {
       return chosenGame;
    }
    
-   public static boolean findMaxEvenRelatedUnscheduledByes(ArrayList<NflGameSchedule> sortedUnscheduledByes, ArrayList<NflGameSchedule> byesToSchedule, int weekNum) {
+   public boolean findMaxEvenRelatedUnscheduledByes(ArrayList<NflGameSchedule> sortedUnscheduledByes, ArrayList<NflGameSchedule> byesToSchedule, int weekNum) {
 	   byesToSchedule.clear();
 	   
 	   NflGameSchedule primaryUnscheduledBye = sortedUnscheduledByes.get(0);
@@ -1169,7 +1230,7 @@ public class NflScheduler {
    // TBD then work through the sorted list, scheduling an even number of byes - 
    // TBD starting with the primary bye then it's unscheduled opponent byes
    
-   public static NflGameSchedule scheduleNextUnrestrictedByes2(NflSchedule schedule, int weekNum) {
+   public NflGameSchedule scheduleNextUnrestrictedByes2(NflSchedule schedule, int weekNum) {
 	   NflGameSchedule lastScheduledBye = null;
        ArrayList<NflGameSchedule> byesToSchedule = new ArrayList<NflGameSchedule>();
 
@@ -1180,7 +1241,7 @@ public class NflScheduler {
 
 	       findMaxEvenRelatedUnscheduledByes(schedule.unscheduledByes, byesToSchedule, weekNum);
 	       for (NflGameSchedule byeToSchedule: byesToSchedule) {
-	             System.out.println("Scheduling Bye(2) in week: " + weekNum + " home team: " + byeToSchedule.homeTeamSchedule.team.teamName);
+	             //System.out.println("Scheduling Bye(2) in week: " + weekNum + " home team: " + byeToSchedule.homeTeamSchedule.team.teamName);
 	             placeGameInSchedule(byeToSchedule, weekNum, schedule);
 	             schedule.byesToScheduleThisWeek--;
 	             lastScheduledBye = byeToSchedule;
@@ -1193,7 +1254,7 @@ public class NflScheduler {
 	   return lastScheduledBye;
    }
 
-   public static boolean scoreUnscheduledByes(ArrayList<NflGameSchedule> unscheduledByes, int weekNum) {
+   public boolean scoreUnscheduledByes(ArrayList<NflGameSchedule> unscheduledByes, int weekNum) {
        for (NflGameSchedule unscheduledBye: unscheduledByes) {
           unscheduledBye.byeCandidateScore = 0;
           // if the unscheduled bye can't be scheduled this week because a (forced) game is already scheduled, this bye is not a candidate
@@ -1216,7 +1277,7 @@ public class NflScheduler {
 	   return true;
    }
    
-   public static NflGameSchedule scheduleNextUnrestrictedByes(NflSchedule schedule, int weekNum) {
+   public NflGameSchedule scheduleNextUnrestrictedByes(NflSchedule schedule, int weekNum) {
       
 	  // analyze and find bye matchup candidates, i.e. unscheduled games where both teams have unscheduled byes
 	  // choose a candidate bye matchup
@@ -1264,17 +1325,17 @@ public class NflScheduler {
       }
       
       if (chosenMatchup != null && chosenMatchup.unscheduledByes.size() == 2) {
-         System.out.println("Entered matchup bye scheduling for week: " + weekNum + " unscheduled bye count: " + schedule.unscheduledByes.size() + ", byesToScheduleThisWeek: " + schedule.byesToScheduleThisWeek);
+         //System.out.println("Entered matchup bye scheduling for week: " + weekNum + " unscheduled bye count: " + schedule.unscheduledByes.size() + ", byesToScheduleThisWeek: " + schedule.byesToScheduleThisWeek);
 
          for (NflGameSchedule byeGame: chosenMatchup.unscheduledByes) {
-            System.out.println("Scheduling Bye(1.1) in week: " + weekNum + " home team: " + byeGame.homeTeamSchedule.team.teamName);
+            //System.out.println("Scheduling Bye(1.1) in week: " + weekNum + " home team: " + byeGame.homeTeamSchedule.team.teamName);
             placeGameInSchedule(byeGame, weekNum, schedule);
             schedule.byesToScheduleThisWeek--;
             lastByeGame = byeGame;
          }   
       }
       else {
-         System.out.println("Entered non-matchup bye scheduling for week: " + weekNum + " unscheduled bye count: " + schedule.unscheduledByes.size() + ", byesToScheduleThisWeek: " + schedule.byesToScheduleThisWeek);
+         //System.out.println("Entered non-matchup bye scheduling for week: " + weekNum + " unscheduled bye count: " + schedule.unscheduledByes.size() + ", byesToScheduleThisWeek: " + schedule.byesToScheduleThisWeek);
          ArrayList<NflGameSchedule> unmatchedByes = new ArrayList<NflGameSchedule>();
          for (NflGameSchedule unscheduledBye: schedule.unscheduledByes) {
              //System.out.println("  unscheduled bye for " + unscheduledBye.game.homeTeam);
@@ -1290,7 +1351,7 @@ public class NflScheduler {
              System.out.println("ERROR: failed to schedule 2 bye games in weekNum: " + weekNum  + " scheduled: " + unmatchedByes.size());
          }
          for (NflGameSchedule unscheduledBye: unmatchedByes) {
-             System.out.println("Scheduling Bye(1.2) in week: " + weekNum + " home team: " + unscheduledBye.homeTeamSchedule.team.teamName);
+             //System.out.println("Scheduling Bye(1.2) in week: " + weekNum + " home team: " + unscheduledBye.homeTeamSchedule.team.teamName);
              placeGameInSchedule(unscheduledBye, weekNum, schedule);
              schedule.byesToScheduleThisWeek--;
              lastByeGame = unscheduledBye;
@@ -1301,7 +1362,7 @@ public class NflScheduler {
  	  return lastByeGame;
    }
    
-   public static NflGameSchedule chooseBestScoringGame(ArrayList<NflGameSchedule> candidateGames, NflTeamSchedule unscheduledTeam) {
+   public NflGameSchedule chooseBestScoringGame(ArrayList<NflGameSchedule> candidateGames, NflTeamSchedule unscheduledTeam) {
        //System.out.println("Entered chooseBestScoringGame " + " unscheduledTeam: " + unscheduledTeam.team.teamName + ", candidateGame size: " + candidateGames.size());
        ArrayList<NflGameSchedule> candidateTeamGames = new ArrayList<NflGameSchedule>();
        for(NflGameSchedule usgame: candidateGames) {
@@ -1321,7 +1382,7 @@ public class NflScheduler {
        return chosenGame;	   
    }
    
-   public static NflGameSchedule chooseBestScoringGame(ArrayList<NflGameSchedule> candidateGames) {
+   public NflGameSchedule chooseBestScoringGame(ArrayList<NflGameSchedule> candidateGames) {
 	   NflGameSchedule chosenGame = null;
        ArrayList<NflGameSchedule> bestCandidateGames = new ArrayList<NflGameSchedule>();
 	   double bestScore = 1000000000;
@@ -1364,7 +1425,7 @@ public class NflScheduler {
    }
 
 
-   public static boolean scheduleUnrestrictedGames(NflSchedule schedule) {
+   public boolean scheduleUnrestrictedGames(NflSchedule schedule) {
 	   // schedule backwards from week numberOfWeeks to week 1
 	   // for each week
 	   // step through each team and then it's unscheduled games
@@ -1450,7 +1511,7 @@ public class NflScheduler {
 				   reschedAttemptsOneWeekBack = 0;
 				   reschedAttemptsSameWeek=0;
 				   reschedLog.add("back tracking multiple weeks\n");
-				   System.out.println("back tracking multiple weeks\n");
+				   //System.out.println("back tracking multiple weeks\n");
 
 			   }
 			   else if (reschedAttemptsSameWeek >= NflDefs.reschedAttemptsSameWeekLimit) {
@@ -1462,7 +1523,7 @@ public class NflScheduler {
 				   reschedAttemptsOneWeekBack++;
 				   reschedAttemptsSameWeek=0;
 				   reschedLog.add("back tracking a single week\n");
-				   System.out.println("back tracking a single week\n");
+				   //System.out.println("back tracking a single week\n");
 			   }
 			   else {
 				   // Now just reschedule the cur week until it's reschedules are exhausted
@@ -1471,7 +1532,7 @@ public class NflScheduler {
 				   reschedAttemptedMaxWeek = Math.max(goBackToWeekNum,reschedAttemptedMaxWeek);
 				   reschedAttemptsSameWeek++;
 				   reschedLog.add("rescheduling the current week\n");
-				   System.out.println("rescheduling the current week\n");
+				   //System.out.println("rescheduling the current week\n");
 			   }
 
 			   boolean shouldClearHistory = true;
@@ -1519,7 +1580,7 @@ public class NflScheduler {
 	   return status;
    }
    
-   public static boolean unscheduleUnrestrictedWeek(NflSchedule schedule, int weekNum, boolean clearHistory) {
+   public boolean unscheduleUnrestrictedWeek(NflSchedule schedule, int weekNum, boolean clearHistory) {
       int unscheduledGameCount = 0;
       for (NflTeamSchedule teamSchedule: schedule.teamSchedules) {
           NflGameSchedule gameSched = teamSchedule.scheduledGames[weekNum-1];
@@ -1627,7 +1688,7 @@ public class NflScheduler {
    }
 */
    
-   public static boolean unscheduleGame(NflGameSchedule gameSched, int weekNum, NflSchedule schedule) {
+   public boolean unscheduleGame(NflGameSchedule gameSched, int weekNum, NflSchedule schedule) {
 	  // remove from the scheduled games of both home and away teams (set null)
 	  // add game back into the unscheduled list
 	  // deduct any attribute usage - see/study place a game in a schedule
@@ -1670,7 +1731,7 @@ public class NflScheduler {
 	      
        // add the game back to the unscheduled arraylist for the schedule
 	   if (gameSched.isBye) {
-		  System.out.println("Unscheduling Bye in week: " + weekNum + " for home team: " + gameSched.game.homeTeam);
+		  //System.out.println("Unscheduling Bye in week: " + weekNum + " for home team: " + gameSched.game.homeTeam);
 	      schedule.unscheduledByes.add(gameSched);
 	   }
 	   else {
@@ -1703,7 +1764,7 @@ public class NflScheduler {
       return true;
    }
    
-   public static boolean updateDemotionInfo(NflSchedule schedule, int weekNum) {
+   public boolean updateDemotionInfo(NflSchedule schedule, int weekNum) {
 	  // loop through unscheduled games
 	  // if demotionCount <= 1 demotion penalty = 0
 	  // if demotionCount > 1, keep demotion penalty unmodified
@@ -1735,7 +1796,7 @@ public class NflScheduler {
 	  return true;
    }
 	  
-   public static boolean initPromotionInfo(NflSchedule schedule) {
+   public boolean initPromotionInfo(NflSchedule schedule) {
 	   for (int gi=0; gi < schedule.unscheduledGames.size(); gi++) {
           NflGameSchedule usgame = schedule.unscheduledGames.get(gi);
 	      if (unscheduledTeams.contains(usgame.homeTeamSchedule) || 
@@ -1747,7 +1808,7 @@ public class NflScheduler {
 	   return true;
    }
    
-   public static boolean updatePromotionInfo(NflSchedule schedule) {
+   public boolean updatePromotionInfo(NflSchedule schedule) {
 	   for (int gi=0; gi < schedule.unscheduledGames.size(); gi++) {
           NflGameSchedule usgame = schedule.unscheduledGames.get(gi);
 	      if (unscheduledTeams.contains(usgame.homeTeamSchedule) || 
@@ -1759,9 +1820,7 @@ public class NflScheduler {
 	   return true;
    }
    
-   
-   
-   public static boolean openBriefLogFile() {
+   public boolean openBriefLogFile() {
 
 	      try {
 	    	 briefLogFw = new FileWriter("logBriefSchedResults.csv");
@@ -1778,7 +1837,7 @@ public class NflScheduler {
 	      return true;
 	   }
 	   
-   public static boolean closeBriefLogFile() {
+   public boolean closeBriefLogFile() {
 	   if (briefLogBw != null) {
 		   try {
 			   briefLogBw.close();
@@ -1790,7 +1849,7 @@ public class NflScheduler {
 	   return true;
    }
 
-   public static boolean briefLogWeek(NflSchedule schedule, int weekNum) {
+   public boolean briefLogWeek(NflSchedule schedule, int weekNum) {
 	   // for each team - check if game scheduled for this week - count them, keep a list of teams unscheduled
 	   // count the byes too
 	   // count the unscheduled games and the unscheduled byes
@@ -1876,7 +1935,7 @@ public class NflScheduler {
    }
 
 	   
-   public static boolean openPartialScheduleLogFile() {
+   public boolean openPartialScheduleLogFile() {
 	   try {
 		   partialScheduleLogFw = new FileWriter("logPartialScheduleResults.csv");
 		   partialScheduleLogBw = new BufferedWriter(partialScheduleLogFw);
@@ -1892,7 +1951,7 @@ public class NflScheduler {
 	   return true;
    }
    
-   public static boolean closePartialScheduleLogFile() {
+   public boolean closePartialScheduleLogFile() {
 	   if (partialScheduleLogBw != null) {
 		   try {
 			   partialScheduleLogBw.close();
@@ -1904,7 +1963,7 @@ public class NflScheduler {
 	   return true;
    }
 
-   public static boolean logPartialScheduleHistory(NflSchedule schedule, int weekNum) {
+   public boolean logPartialScheduleHistory(NflSchedule schedule, int weekNum) {
 	   // Construct a record for the full partial schedule up to this week
 	   // Use the partial schedule fingerprint from the previous week to add onto for this week using hashcodes and the weeknum
 

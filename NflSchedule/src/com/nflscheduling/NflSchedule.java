@@ -15,6 +15,8 @@ public class NflSchedule {
    public ArrayList<NflGameSchedule> unscheduledGames;
    public ArrayList<NflGameSchedule> unscheduledByes;
    public ArrayList<NflScheduleMetric> scheduleMetrics;
+   public ArrayList<NflScheduleAlert> alerts;
+ 
    public double score = 0.0;
    public int byesToScheduleThisWeek;
    public double latestScheduleFingerPrint;
@@ -41,9 +43,9 @@ public class NflSchedule {
       unscheduledGames = new ArrayList<NflGameSchedule>();
       unscheduledByes = new ArrayList<NflGameSchedule>();
       resourceSchedules = new ArrayList<NflResourceSchedule>();
-      
       scheduleMetrics = new ArrayList<NflScheduleMetric>();
-      
+      alerts = new ArrayList<NflScheduleAlert>();
+
       NflSMetNoRepeatedMatchup metricNRM = new NflSMetNoRepeatedMatchup("NoRepeatedMatchup");
       scheduleMetrics.add(metricNRM);
       NflSMetRoadTripLimit metricRTL = new NflSMetRoadTripLimit("RoadTripLimit");
@@ -52,6 +54,8 @@ public class NflSchedule {
       scheduleMetrics.add(metricHSL);
       NflSMetDivisionalSeparation metricDS = new NflSMetDivisionalSeparation("DivisionalSeparation");
       scheduleMetrics.add(metricDS);
+      NflSMetDivisionalWeekLimits metricDWL = new NflSMetDivisionalWeekLimits("DivisionalWeekLimits");
+      scheduleMetrics.add(metricDWL);
       //NflSMetBalancedHomeAway metricBalHA = new NflSMetBalancedHomeAway("Balanced Home Away", this);
       //scheduleMetrics.add(metricBalHA);
 
@@ -274,6 +278,25 @@ public class NflSchedule {
 
     * 
     */
+   
+   public int divisionalGameCount(int weekNum) {
+	   int divisionalGameCount = 0;
+	   
+       for (NflTeamSchedule teamSchedule: teamSchedules) {
+          if (teamSchedule.scheduledGames[weekNum-1] != null) {
+             NflGameSchedule scheduledGame = teamSchedule.scheduledGames[weekNum-1];
+             if (scheduledGame.game.findAttribute("division")) {
+                divisionalGameCount++;
+             }
+          }
+       }
+    
+       // must divide divisionalGameCount by 2 since each game appears twice in the week, once for each of the 2 teams
+       divisionalGameCount = divisionalGameCount/2;
+    
+       return divisionalGameCount;
+   }
+
    public boolean determineNumByesForWeek(int weekNum) {
 	   // byesToScheduleThisWeek - set it
 	   // remaining byeCapacity in resource "Bye" from weeknum back

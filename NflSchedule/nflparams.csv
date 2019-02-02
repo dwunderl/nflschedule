@@ -1,5 +1,6 @@
 NumberOfWeeks,17
 NumberOfTeams,32
-reschedAttemptsMultiWeeksBackLimit,15
-reschedAttemptsOneWeekBackLimit,15
-reschedAttemptsSameWeekLimit,15
+reschedAttemptsMultiWeeksBackLimit,20
+reschedAttemptsOneWeekBackLimit,20
+reschedAttemptsSameWeekLimit,20
+scheduleAttempts,22

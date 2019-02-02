@@ -21,12 +21,14 @@ public class NflGMetBalancedHomeAway extends NflGameMetric {
 			   
 		   score = 0.0;
 		   
-		   String myHomeTeamName = gameSchedule.game.homeTeam;
-		   String myAwayTeamName = gameSchedule.game.awayTeam;
+		   //String myHomeTeamName = gameSchedule.game.homeTeam;
+		   //String myAwayTeamName = gameSchedule.game.awayTeam;
 		   
-	       NflTeamSchedule homeTeamSched = schedule.findTeam(myHomeTeamName);
-	       NflTeamSchedule awayTeamSched = schedule.findTeam(myAwayTeamName);
-	       
+	       //NflTeamSchedule homeTeamSched = schedule.findTeam(myHomeTeamName);
+	       NflTeamSchedule homeTeamSched = gameSchedule.homeTeamSchedule;
+	       //NflTeamSchedule awayTeamSched = schedule.findTeam(myAwayTeamName);
+	       NflTeamSchedule awayTeamSched = gameSchedule.awayTeamSchedule;
+
 	       int homeTeamScheduledGames = 0;
 	       int homeTeamScheduledHomeGames = 0;
 	       
@@ -37,7 +39,8 @@ public class NflGMetBalancedHomeAway extends NflGameMetric {
     		   NflGameSchedule homeTeamGame = homeTeamSched.scheduledGames[wi-1];
 	    	   if (homeTeamGame != null && !homeTeamGame.isBye) {
 	    		   homeTeamScheduledGames++;
-	    		   if (homeTeamGame.game.homeTeam.equalsIgnoreCase(myHomeTeamName)) {
+	    		   //if (homeTeamGame.game.homeTeam.equalsIgnoreCase(myHomeTeamName)) {
+		           if (homeTeamGame.homeTeamSchedule == homeTeamSched) {
 	    			   homeTeamScheduledHomeGames++;
 	    		   }
 	    	   }
@@ -45,10 +48,16 @@ public class NflGMetBalancedHomeAway extends NflGameMetric {
     		   NflGameSchedule awayTeamGame = awayTeamSched.scheduledGames[wi-1];
 	    	   if (awayTeamGame != null && !awayTeamGame.isBye) {
 	    		   awayTeamScheduledGames++;
-	    		   if (awayTeamGame.game.homeTeam.equalsIgnoreCase(myAwayTeamName)) {
+		           if (awayTeamGame.homeTeamSchedule == awayTeamSched) {
+	    		   //if (awayTeamGame.game.homeTeam.equalsIgnoreCase(myAwayTeamName)) {
 	    			   awayTeamScheduledHomeGames++;
 	    		   }
 	    	   }
+	       }
+	       
+	       if (homeTeamScheduledGames == 0 || awayTeamScheduledGames == 0) {
+	    	   // avoid divide by 0
+	    	   return true;
 	       }
 	       
 	       double beforeHomeTeamBalanceMetric = Math.abs((double) homeTeamScheduledHomeGames/(double) homeTeamScheduledGames - 0.5);

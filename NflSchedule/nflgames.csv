@@ -176,7 +176,7 @@ bears,patriots
 bears,jets
 broncos,seahawks
 broncos,rams
-raiders,seahawks
+raiders,seahawks,international
 raiders,rams
 chiefs,49ers
 chiefs,cardinals
@@ -184,13 +184,13 @@ chargers,49ers
 chargers,cardinals
 seahawks,chiefs
 seahawks,chargers
-rams,chiefs
+rams,chiefs,international
 rams,chargers
 cardinals,broncos
 cardinals,raiders
 49ers,broncos
 49ers,raiders
-jaguars,eagles
+jaguars,eagles,international
 jaguars,redskins
 titans,eagles
 titans,redskins
@@ -225,7 +225,7 @@ buccaneers,steelers
 broncos,texans
 raiders,colts
 chiefs,jaguars
-chargers,titans
+chargers,titans,international
 patriots,chiefs
 jets,broncos
 bills,chargers
