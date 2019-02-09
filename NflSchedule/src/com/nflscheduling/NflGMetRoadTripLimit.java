@@ -18,13 +18,35 @@ public class NflGMetRoadTripLimit extends NflGameMetric {
        // look left and right from weekNum
 		   
 	   score = 0.0;
+	   
+       NflTeamSchedule homeTeamSched = gameSchedule.homeTeamSchedule;
+       NflTeamSchedule awayTeamSched = gameSchedule.awayTeamSchedule;
+       
+       // NflTeamSchedule homeTeamSched = schedule.findTeam(gameSchedule.game.homeTeam);
+       // NflTeamSchedule awayTeamSched = schedule.findTeam(gameSchedule.game.awayTeam);
+       
+       // TBD
+       // Modularize the road trip checking to a passed NflTeamSchedule
+       // Because if international, then want to treat the home team as having an away game
+       // Therefore, check both home and away team for road trip violations
+       
+       scoreRoadTripLength(weekNum, awayTeamSched);
+       
+       if (gameSchedule.game.isInternational) {
+          scoreRoadTripLength(weekNum, homeTeamSched);  // this game is a virtual away game for the home team
+       }
+
+	   //System.out.println("Info: RoadTripLength metric for game, weekNum: " + weekNum + " home team: " + homeTeamSched.team.teamName + " away team: " + awayTeamSched.team.teamName
+	   //		               + ", roadTripLength: " + roadTripLength + ", score: " + score);
+	   
+	   return true;
+	}
+	
+	public boolean scoreRoadTripLength(int weekNum, NflTeamSchedule awayTeamSched) {
 	   int roadTripLength = 1;
 	   int firstRoadWeek;
 	   int lastRoadWeek;
-	   
-       NflTeamSchedule homeTeamSched = schedule.findTeam(gameSchedule.game.homeTeam);
-       NflTeamSchedule awayTeamSched = schedule.findTeam(gameSchedule.game.awayTeam);
-       
+
        // left to earlier weeks
        firstRoadWeek = weekNum;
        for (int wi=weekNum-1; wi >= 1; wi--) {
@@ -33,16 +55,21 @@ public class NflGMetRoadTripLimit extends NflGameMetric {
           }
           
           if (awayTeamSched.scheduledGames[wi-1].isBye) {
-              continue;
-           }
+             continue;
+          }
           
-          String prevWeekAwayTeam = awayTeamSched.scheduledGames[wi-1].game.awayTeam;
-          if (!prevWeekAwayTeam.equalsIgnoreCase(awayTeamSched.team.teamName)) {
+          NflTeamSchedule prevWeekHomeTeamSched = awayTeamSched.scheduledGames[wi-1].homeTeamSchedule;
+          NflGame prevWeekGame = awayTeamSched.scheduledGames[wi-1].game;
+          
+          if (prevWeekHomeTeamSched == awayTeamSched && !prevWeekGame.isInternational) {
+             // last weeks game was a home game that was not an international (virtual away) game
              break;
           }
           
+          // I was also the away team last week
+          
           roadTripLength++;
-          firstRoadWeek--;
+          firstRoadWeek = wi;
        }
 
        // look right to later scheduled weeks
@@ -56,38 +83,46 @@ public class NflGMetRoadTripLimit extends NflGameMetric {
               continue;
            }
            
-          String nextWeekAwayTeam = awayTeamSched.scheduledGames[wi-1].game.awayTeam;
+          NflTeamSchedule nextWeekHomeTeamSched = awayTeamSched.scheduledGames[wi-1].homeTeamSchedule;
+          NflGame nextWeekGame = awayTeamSched.scheduledGames[wi-1].game;
            
-          if (!nextWeekAwayTeam.equalsIgnoreCase(awayTeamSched.team.teamName)) {
+          if (nextWeekHomeTeamSched == awayTeamSched && !nextWeekGame.isInternational) {
+              // next weeks game is a home game that is not an international (virtual away) game
              break;
           }
           
           roadTripLength++;
-          lastRoadWeek++;
-        }
+          lastRoadWeek = wi;
+       }
        
-        if (roadTripLength == 3) {
-  		   //System.out.println("roadTripLength == 3; lastRoadWeek: " + lastRoadWeek + ", firstRoadWeek: " + firstRoadWeek);
-           score = .5;
-           if (firstRoadWeek == 1) {
-         	   //System.out.println("... found firstRoadWeek == 1");
-               //score = 1.0;
-               score = 4.0;
-           }
-           else if (lastRoadWeek == NflDefs.numberOfWeeks) {
+	   boolean alertViolation = false;
+       if (roadTripLength == 3) {
+  		  //System.out.println("roadTripLength == 3; lastRoadWeek: " + lastRoadWeek + ", firstRoadWeek: " + firstRoadWeek);
+          score += .4;
+          if (firstRoadWeek == 1) {
+         	  //System.out.println("... found firstRoadWeek == 1");
+              score = 4.0;
+    	      alertViolation = true;
+          }
+          else if (lastRoadWeek == NflDefs.numberOfWeeks) {
               //System.out.println("... found lastRoadWeek == " + NflDefs.numberOfWeeks);
-               //score = 1.0;
-               score = 4.0;
-           }
-        }
-        else if (roadTripLength > 3) {
-           // score = 1.0;
-           score = 4.0;
-        }
-        
-	    //System.out.println("Info: RoadTripLength metric for game, weekNum: " + weekNum + " home team: " + homeTeamSched.team.teamName + " away team: " + awayTeamSched.team.teamName
-	    //		               + ", roadTripLength: " + roadTripLength + ", score: " + score);
-	   
-	   return true;
+              score += 4.0;
+    	      alertViolation = true;
+          }
+       }
+       else if (roadTripLength > 3) {
+          score += 4.0;
+ 	      alertViolation = true;
+      }
+       
+       if (alertViolation) {
+	       if (gameSchedule.schedule.enableAlerts) {
+			    NflScheduleAlert alert = new NflScheduleAlert();
+			    alert.alertDescr = "Road trip too long: " + awayTeamSched.team.teamName + " from week: " + firstRoadWeek + " to week: " + lastRoadWeek + " Games: " + roadTripLength;
+			    gameSchedule.schedule.addAlert(alert);
+	       }
+       }
+
+       return true;
 	}
 }

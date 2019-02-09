@@ -11,10 +11,14 @@ public class NflGame {
    public String  awayTeam;
    public ArrayList<String> attribute;
    public boolean isBye;
+   public boolean isDivisional;
+   public boolean isInternational;
 
    NflGame() {
       attribute = new ArrayList<String>(2);
       isBye = false;
+      isDivisional = false;
+      isInternational = false;
    }
 
    public boolean findAttribute(String attrName) {

@@ -8,6 +8,8 @@ public class NflDefs {
 	public static int reschedAttemptsOneWeekBackLimit = 7;
 	public static int reschedAttemptsSameWeekLimit = 7;
 	public static int scheduleAttempts = 20;
+	public static int savedScheduleLimit = 10;
+	public static int alertLimit = 4;
 
 	public NflDefs() {
 		// TODO Auto-generated constructor stub

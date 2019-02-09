@@ -1,33 +1,33 @@
 Team,Week 1,Week 2,Week 3,Week 4,Week 5,Week 6,Week 7,Week 8,Week 9,Week 10,Week 11,Week 12,Week 13,Week 14,Week 15,Week 16,Week 17
-giants,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at eagles.0,redskins.4,at cowboys.0
-redskins,0,0,0,0,0,0,0,0,0,0,0,0,0,0,panthers.12,at giants.4,eagles.0
-eagles,colts.0,0,0,0,0,0,at jaguars.0 (Lon),0,0,0,0,0,0,0,giants.0,at titans.12,at redskins.0
-cowboys,0,0,0,0,0,0,0,0,0,0,0,saints.0,lions.0,0,at falcons.7,at texans.7,giants.0
-jets,0,0,0,0,0,0,0,0,0,0,0,0,0,0,bills.15,at lions.11,patriots.0
-bills,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at jets.15,at vikings.1,dolphins.0
-dolphins,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at vikings.14,raiders.3,at bills.0
-patriots,at jaguars.0,0,0,0,0,0,0,0,0,0,0,0,0,at bears.0,packers.2,at steelers.0,at jets.0
-jaguars,patriots.0,0,0,0,0,0,eagles.0 (Lon),0,0,0,0,0,0,0,at texans.10,at colts.8,texans.0
-titans,0,0,0,0,0,0,0,at chargers.0 (Lon),Bye,0,0,0,0,0,at colts.8,eagles.12,colts.0
-texans,0,0,0,0,0,0,0,0,0,0,0,0,0,0,jaguars.10,cowboys.7,at jaguars.0
-colts,at eagles.0,0,0,0,0,0,0,0,0,0,0,0,0,0,titans.8,jaguars.8,at titans.0
-panthers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,at redskins.12,at saints.5,falcons.0
-falcons,0,0,0,0,0,0,0,0,0,0,0,0,0,at packers.0,cowboys.7,ravens.10,at panthers.0
-buccaneers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,browns.9,at bears.0,saints.0
-saints,0,0,0,0,0,0,0,0,0,0,0,at cowboys.0,0,0,steelers.5,panthers.5,at buccaneers.0
-Broncos,chiefs.0,0,0,0,0,0,0,0,0,0,0,0,0,0,at chargers.3,at bengals.9,chargers.0
-Chiefs,at broncos.0,0,0,0,0,0,0,0,0,0,0,0,0,0,raiders.1,at seahawks.13,at raiders.0
-Chargers,0,0,0,0,0,0,0,titans.0 (Lon),Bye,0,0,0,0,0,broncos.3,at browns.14,at broncos.0
-Raiders,0,0,0,0,0,seahawks.0 (Lon),Bye,0,0,0,0,0,0,0,at chiefs.1,at dolphins.3,chiefs.0
-Lions,0,0,0,0,0,0,0,0,0,0,0,rams.0,at cowboys.0,0,at 49ers.11,jets.11,vikings.0
-Bears,0,0,0,0,0,0,0,0,0,0,0,0,0,patriots.0,at cardinals.13,buccaneers.0,at packers.0
-Packers,0,0,0,0,0,0,0,0,0,0,0,0,0,falcons.0,at patriots.2,at rams.6,bears.0
-Vikings,0,0,0,0,0,0,0,0,0,0,0,0,0,0,dolphins.14,bills.1,at lions.0
-Cardinals,0,0,0,0,0,0,0,0,0,0,0,0,0,0,bears.13,at 49ers.2,rams.0
-Rams,0,0,0,0,0,0,0,0,0,0,0,at lions.0,0,0,seahawks.4,packers.6,at cardinals.0
-Seahawks,0,0,0,0,0,at raiders.0 (Lon),Bye,0,0,0,0,0,0,0,at rams.4,chiefs.13,49ers.0
-49ers,0,0,0,0,0,0,0,0,0,0,0,0,0,0,lions.11,cardinals.2,at seahawks.0
-Ravens,0,bengals.0,0,0,0,0,0,0,0,0,0,0,0,0,at bengals.6,at falcons.10,steelers.0
-Steelers,0,browns.0,0,0,0,0,0,0,0,0,0,0,0,0,at saints.5,patriots.0,at ravens.0
-Browns,0,at steelers.0,0,0,0,0,0,0,0,0,0,0,0,0,at buccaneers.9,chargers.14,bengals.0
-Bengals,0,at ravens.0,0,0,0,0,0,0,0,0,0,0,0,0,ravens.6,broncos.9,at browns.0
+giants,saints.3,at colts.4,jaguars.9,at texans.9,eagles.4,at 49ers.10,titans.4,at redskins.11,bears.2,Bye,at falcons.7,at panthers.4,buccaneers.10,cowboys.1,at eagles.0,redskins.6,at cowboys.0
+redskins,panthers.2,at jaguars.7,packers.4,at saints.11,cowboys.2,at cardinals.7,at cowboys.3,giants.11,falcons.7,Bye,at titans.8,at eagles.5,colts.11,at buccaneers.8,texans.11,at giants.6,eagles.0
+eagles,falcons.0,at cowboys.5,at rams.7,vikings.13,at giants.4,texans.12,at jaguars.0 (Lon),panthers.7,cowboys.6,Bye,at buccaneers.14,redskins.5,at titans.7,colts.7,giants.0,at saints.13,at redskins.0
+cowboys,at colts.7,eagles.5,at panthers.2,buccaneers.12,at redskins.2,titans.14,redskins.3,at texans.8,at eagles.6,Bye,jaguars.15,saints.0,lions.0,at giants.1,at falcons.5,at seahawks.12,giants.0
+jets,at browns.13,patriots.2,at titans.10,bills.8,Bye,broncos.4,at patriots.11,colts.9,at lions.11,at jaguars.6,texans.2,packers.3,at bears.13,at dolphins.3,vikings.13,at bills.7,dolphins.0
+bills,titans.11,at vikings.9,lions.3,at jets.8,bears.6,at ravens.8,at colts.5,jaguars.2,patriots.10,at dolphins.12,Bye,chargers.12,at packers.12,at texans.5,dolphins.12,jets.7,at patriots.0
+dolphins,at texans.9,at packers.12,bears.13,titans.2,at vikings.5,patriots.9,at bengals.10,lions.13,at colts.8,bills.12,Bye,jaguars.6,at patriots.9,jets.3,at bills.12,raiders.4,at jets.0
+patriots,at jaguars.0,at jets.2,vikings.1,colts.10,at lions.9,at dolphins.9,jets.11,chiefs.10,at bills.10,at titans.11,Bye,texans.11,dolphins.9,at bears.0,packers.6,at steelers.0,bills.0
+jaguars,patriots.0,redskins.7,at giants.9,Bye,steelers.11,at chiefs.6,eagles.0 (Lon),at bills.2,texans.9,jets.6,at cowboys.15,at dolphins.6,at texans.8,titans.11,at colts.8,at titans.10,colts.0
+titans,at bills.11,texans.11,jets.10,at dolphins.2,colts.3,at cowboys.14,at giants.4,at chargers.0 (Lon),Bye,patriots.11,redskins.8,at colts.10,eagles.7,at jaguars.11,ravens.3,jaguars.10,at texans.0
+texans,dolphins.9,at titans.11,colts.15,giants.9,Bye,at eagles.12,at broncos.8,cowboys.8,at jaguars.9,browns.10,at jets.2,at patriots.11,jaguars.8,bills.5,at redskins.11,at colts.3,titans.0
+colts,cowboys.7,giants.4,at texans.15,at patriots.10,at titans.3,bengals.11,bills.5,at jets.9,dolphins.8,at raiders.13,Bye,titans.10,at redskins.11,at eagles.7,jaguars.8,texans.3,at jaguars.0
+panthers,at redskins.2,seahawks.13,cowboys.2,falcons.5,Bye,at saints.13,at buccaneers.2,at eagles.7,bengals.15,at steelers.2,saints.13,giants.4,at browns.5,at lions.9,buccaneers.10,ravens.8,at falcons.0
+falcons,at eagles.0,at buccaneers.3,cardinals.12,at panthers.5,Bye,buccaneers.2,saints.6,at steelers.6,at redskins.7,ravens.15,giants.7,bengals.8,at saints.4,at packers.0,cowboys.5,at browns.14,panthers.0
+buccaneers,at bengals.1,falcons.3,49ers.5,at cowboys.12,Bye,at falcons.2,panthers.2,browns.3,at ravens.14,at saints.3,eagles.14,steelers.7,at giants.10,redskins.8,at panthers.10,at bears.0,saints.0
+saints,at giants.3,rams.6,at ravens.8,redskins.11,Bye,panthers.13,at falcons.6,at vikings.4,steelers.13,buccaneers.3,at panthers.13,at cowboys.0,falcons.4,at bengals.14,browns.4,eagles.13,at buccaneers.0
+Broncos,chiefs.0,at 49ers.8,raiders.14,browns.6,at ravens.13,at jets.4,texans.8,Bye,seahawks.3,at chargers.14,steelers.3,at chiefs.13,at cardinals.6,rams.2,at raiders.7,at bengals.9,chargers.0
+Chiefs,at broncos.0,cardinals.10,at browns.11,at steelers.4,49ers.10,jaguars.6,Bye,at patriots.10,raiders.4,bengals.4,at chargers.6,broncos.13,ravens.2,at seahawks.10,chargers.1,at rams.11,at raiders.0
+Chargers,ravens.8,at raiders.1,at seahawks.6,Bye,bengals.14,at rams.3,49ers.7,titans.0 (Lon),at browns.5,broncos.14,chiefs.6,at bills.12,raiders.3,at steelers.12,at chiefs.1,cardinals.1,at broncos.0
+Raiders,steelers.10,chargers.1,at broncos.14,at cardinals.15,browns.12,seahawks.0 (Lon),Bye,at bengals.5,at chiefs.4,colts.13,at ravens.4,rams.9,at chargers.3,at 49ers.6,broncos.7,at dolphins.4,chiefs.0
+Lions,packers.5,at bears.14,at bills.3,at packers.7,patriots.9,Bye,rams.13,at dolphins.13,jets.11,at vikings.7,at cardinals.9,seahawks.0,at cowboys.0,panthers.9,bears.9,at 49ers.2,vikings.0
+Bears,at cardinals.4,lions.14,at dolphins.13,rams.14,at bills.6,Bye,vikings.12,at 49ers.12,at giants.2,packers.8,seahawks.10,at vikings.2,jets.13,patriots.0,at lions.9,buccaneers.0,at packers.0
+Packers,at lions.5,dolphins.12,at redskins.4,lions.7,at rams.8,Bye,cardinals.14,at seahawks.14,vikings.12,at bears.8,49ers.11,at jets.3,bills.12,falcons.0,at patriots.6,at vikings.5,bears.0
+Vikings,49ers.12,bills.9,at patriots.1,at eagles.13,dolphins.5,Bye,at bears.12,saints.4,at packers.12,lions.7,at rams.12,bears.2,at seahawks.14,cardinals.4,at jets.13,packers.5,at lions.0
+Cardinals,bears.4,at chiefs.10,at falcons.12,raiders.15,seahawks.7,redskins.7,at packers.14,at rams.15,Bye,at seahawks.9,lions.9,at 49ers.1,broncos.6,at vikings.4,49ers.15,at chargers.1,rams.0
+Rams,at seahawks.6,at saints.6,eagles.7,at bears.14,packers.8,chargers.3,at lions.13,cardinals.15,Bye,at 49ers.5,vikings.12,at raiders.9,49ers.15,at broncos.2,seahawks.14,chiefs.11,at cardinals.0
+Seahawks,rams.6,at panthers.13,chargers.6,at 49ers.16,at cardinals.7,at raiders.0 (Lon),Bye,packers.14,at broncos.3,cardinals.9,at bears.10,at lions.0,vikings.14,chiefs.10,at rams.14,cowboys.12,49ers.0
+49ers,at vikings.12,broncos.8,at buccaneers.5,seahawks.16,at chiefs.10,giants.10,at chargers.7,bears.12,Bye,rams.5,at packers.11,cardinals.1,at rams.15,raiders.6,at cardinals.15,lions.2,at seahawks.0
+Ravens,at chargers.8,bengals.0,saints.8,at bengals.3,broncos.13,bills.8,at steelers.9,Bye,buccaneers.14,at falcons.15,raiders.4,at browns.14,at chiefs.2,browns.13,at titans.3,at panthers.8,steelers.0
+Steelers,at raiders.10,browns.0,bengals.16,chiefs.4,at jaguars.11,at browns.5,ravens.9,falcons.6,at saints.13,panthers.2,at broncos.3,at buccaneers.7,Bye,chargers.12,at bengals.2,patriots.0,at ravens.0
+Browns,jets.13,at steelers.0,chiefs.11,at broncos.6,at raiders.12,steelers.5,Bye,at buccaneers.3,chargers.5,at texans.10,at bengals.5,ravens.14,panthers.5,at ravens.13,at saints.4,falcons.14,bengals.0
+Bengals,buccaneers.1,at ravens.0,at steelers.16,ravens.3,at chargers.14,at colts.11,dolphins.10,raiders.5,at panthers.15,at chiefs.4,browns.5,at falcons.8,Bye,saints.14,steelers.2,broncos.9,at browns.0

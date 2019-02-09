@@ -18,6 +18,7 @@ public class NflSchedule {
    public ArrayList<NflScheduleAlert> alerts;
  
    public double score = 0.0;
+   public boolean enableAlerts = false;
    public int byesToScheduleThisWeek;
    public double latestScheduleFingerPrint;
    public static Random rnd = new Random();
@@ -45,6 +46,7 @@ public class NflSchedule {
       resourceSchedules = new ArrayList<NflResourceSchedule>();
       scheduleMetrics = new ArrayList<NflScheduleMetric>();
       alerts = new ArrayList<NflScheduleAlert>();
+      enableAlerts = false;
 
       NflSMetNoRepeatedMatchup metricNRM = new NflSMetNoRepeatedMatchup("NoRepeatedMatchup");
       scheduleMetrics.add(metricNRM);
@@ -56,6 +58,11 @@ public class NflSchedule {
       scheduleMetrics.add(metricDS);
       NflSMetDivisionalWeekLimits metricDWL = new NflSMetDivisionalWeekLimits("DivisionalWeekLimits");
       scheduleMetrics.add(metricDWL);
+      NflSMetDivisionalStart metricDivStart = new NflSMetDivisionalStart("DivisionalStart");
+      scheduleMetrics.add(metricDivStart);
+      NflSMetDivisionalBalance metricDivBal = new NflSMetDivisionalBalance("DivisionalBalance");
+      scheduleMetrics.add(metricDivBal);
+      
       //NflSMetBalancedHomeAway metricBalHA = new NflSMetBalancedHomeAway("Balanced Home Away", this);
       //scheduleMetrics.add(metricBalHA);
 
@@ -249,6 +256,7 @@ public class NflSchedule {
 
    public boolean computeMetrics() {
       score = 0.0;
+      enableAlerts = true;
       for (int mi=0; mi < scheduleMetrics.size(); mi++) {
          NflScheduleMetric scheduleMetric = scheduleMetrics.get(mi);
          //System.out.println("Computing Metric: " + gameMetric.metricName + " for game: " + game.homeTeam + " : " + game.awayTeam);
@@ -402,4 +410,17 @@ public class NflSchedule {
 
 	   return true;
    }
+   
+   public boolean addAlert(NflScheduleAlert newAlert) {
+       for(NflScheduleAlert alert: alerts) {
+    	  if (alert.alertDescr.equalsIgnoreCase(newAlert.alertDescr)) {
+    		  // newAlert is already in the collection, don't duplicate
+    		  return true;
+    	  }
+       }
+	   alerts.add(newAlert);
+
+	   return true;
+   }
+
 }

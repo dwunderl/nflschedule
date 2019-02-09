@@ -193,15 +193,19 @@ public class NflScheduler {
 		  // Schedule the remaining unrestricted games
 		  scheduleUnrestrictedGames(curSchedule);
 	
-		      
 		  closeBriefLogFile();
 		  closePartialScheduleLogFile();
 	
 		  System.out.println("Total Schedule Metric: " + curSchedule.score);
 		  if (curSchedule.unscheduledGames.size() == 0) {
-			  schedules.add(curSchedule);
 			  curSchedule.computeMetrics();
-			  writeScheduleCsv(curSchedule, "curSchedule" + schedules.size() + ".csv");
+			  if (curSchedule.alerts.size() <= NflDefs.alertLimit) {
+			     schedules.add(curSchedule);
+			     writeScheduleCsv(curSchedule, "curSchedule" + schedules.size() + ".csv");
+			     if (schedules.size() >= NflDefs.savedScheduleLimit) {
+			    	 break; // hit the limit of saved schedules
+			     }
+			  }
 		  }
 	  }
 	  
@@ -289,6 +293,20 @@ public class NflScheduler {
                    }
                    System.out.println("loadParams: scheduleAttempts set to " + NflDefs.scheduleAttempts);
                 }
+         	   else if (token[0].equalsIgnoreCase("savedScheduleLimit")) {
+                   NflDefs.savedScheduleLimit = Integer.parseInt(token[1]);
+                   if (NflDefs.savedScheduleLimit <= 0 || NflDefs.savedScheduleLimit > 100) {
+                      System.out.println("loadParams: savedScheduleLimit invalid" + NflDefs.savedScheduleLimit);
+                   }
+                   System.out.println("loadParams: savedScheduleLimit set to " + NflDefs.savedScheduleLimit);
+                }
+         	   else if (token[0].equalsIgnoreCase("alertLimit")) {
+                   NflDefs.alertLimit = Integer.parseInt(token[1]);
+                   if (NflDefs.alertLimit <= 0 || NflDefs.alertLimit > 100) {
+                      System.out.println("loadParams: alertLimit invalid" + NflDefs.alertLimit);
+                   }
+                   System.out.println("loadParams: alertLimit set to " + NflDefs.alertLimit);
+                }
             }
          }
       } catch (FileNotFoundException e) {
@@ -326,13 +344,19 @@ public class NflScheduler {
                teams.add(team);
                
                if (token.length > 1) {
-                  double timezone = Double.parseDouble(token[1]);
-                  team.timezone = timezone;
-               }    
-               if (token.length > 2) {
-                  String stadium = token[2];
-                  team.stadium = stadium;
-               }
+                   team.conference = token[1];
+                }    
+                if (token.length > 2) {
+                   team.division = token[2];
+                }
+                if (token.length > 3) {
+                    double timezone = Double.parseDouble(token[3]);
+                    team.timezone = timezone;
+                 }    
+                 if (token.length > 4) {
+                    String stadium = token[4];
+                    team.stadium = stadium;
+                 }
             }
          }
       } catch (FileNotFoundException e) {
@@ -376,6 +400,15 @@ public class NflScheduler {
                game.attribute.add(token[2]);
             if (token.length > 3)
                game.attribute.add(token[3]);
+            if (token.length > 4)
+               game.attribute.add(token[4]);
+            
+            if (game.findAttribute("division")) {
+               game.isDivisional = true;
+            }
+            if (game.findAttribute("international")) {
+               game.isInternational = true;
+            }
 
             //game.weekNum = 0;  // not scheduled yet
 
@@ -917,17 +950,29 @@ public class NflScheduler {
 
          // Write out Divisional Game Counts
          
+         int first8weeksDivisionalTotal = 0;
+         int second8weeksDivisionalTotal = 0;
+         
          bw.write("\nDivisional Games");
   	     for (int wi=1; wi <= NflDefs.numberOfWeeks; wi++) {
  		    int divisionalGameCount = schedule.divisionalGameCount(wi);
             bw.write("," + divisionalGameCount);
+            if (wi <= 8) {
+            	first8weeksDivisionalTotal += divisionalGameCount;
+            }
+            else if (wi <= 16) {
+            	second8weeksDivisionalTotal += divisionalGameCount;
+            }
   	     }
+  	     // write out the 8 week totals summaries
+  	     bw.write("\n8 week totals,,,,,,,," + first8weeksDivisionalTotal + ",,,,,,,," + second8weeksDivisionalTotal);
   	     
          // Write out Alerts
          if (!schedule.alerts.isEmpty()) {
             bw.write("\nAlert,week,home,away\n");
             for(NflScheduleAlert alert: schedule.alerts) {
-                bw.write(alert.alertDescr + "," + alert.weekNum + "," + alert.homeTeam + "," + alert.awayTeam + "\n");
+                //bw.write(alert.alertDescr + "," + alert.weekNum + "," + alert.homeTeam + "," + alert.awayTeam + "\n");
+                bw.write(alert.alertDescr + "\n");
             }
          }
          bw.write("\n");

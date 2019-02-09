@@ -3,4 +3,6 @@ NumberOfTeams,32
 reschedAttemptsMultiWeeksBackLimit,20
 reschedAttemptsOneWeekBackLimit,20
 reschedAttemptsSameWeekLimit,20
-scheduleAttempts,22
+scheduleAttempts,30
+savedScheduleLimit,10
+alertLimit,4

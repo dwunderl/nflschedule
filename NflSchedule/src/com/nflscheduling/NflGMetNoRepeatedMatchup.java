@@ -27,7 +27,10 @@ public class NflGMetNoRepeatedMatchup extends NflGameMetric {
 	   // check my home teams scheduled game for a repeated matchup
 	   
        score = 0.0;
-       
+       boolean alertViolation = false;
+       int firstMatchupWeek = weekNum;
+       int lastMatchupWeek = weekNum;
+
        if (!gameSchedule.game.findAttribute("division")) {
     	   return true;
        }
@@ -53,7 +56,10 @@ public class NflGMetNoRepeatedMatchup extends NflGameMetric {
              if (nextWeeksHomeTeamGame.game.awayTeam.equalsIgnoreCase(gameSchedule.game.homeTeam) &&
             		 nextWeeksHomeTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
                 score = 10.0;
+                alertViolation = true;
+                lastMatchupWeek = wi;
              }
+             
              break;
 	      }
 	      
@@ -71,6 +77,8 @@ public class NflGMetNoRepeatedMatchup extends NflGameMetric {
              if (nextWeeksAwayTeamGame.game.awayTeam.equalsIgnoreCase(gameSchedule.game.homeTeam) &&
         		 nextWeeksAwayTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
                 score = 10.0;
+                alertViolation = true;
+                lastMatchupWeek = wi;
              }
              break;
 	      }
@@ -94,6 +102,8 @@ public class NflGMetNoRepeatedMatchup extends NflGameMetric {
              if (prevWeeksHomeTeamGame.game.awayTeam.equalsIgnoreCase(gameSchedule.game.homeTeam) &&
             		 prevWeeksHomeTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
                 score = 10.0;
+                alertViolation = true;
+                firstMatchupWeek = wi;
              }
              break;
 	      }
@@ -112,11 +122,31 @@ public class NflGMetNoRepeatedMatchup extends NflGameMetric {
 	         if (prevWeeksAwayTeamGame.game.awayTeam.equalsIgnoreCase(gameSchedule.game.homeTeam) &&
 	        		 prevWeeksAwayTeamGame.game.homeTeam.equalsIgnoreCase(gameSchedule.game.awayTeam)) {
 	            score = 10.0;
+                alertViolation = true;
+                firstMatchupWeek = wi;
 	         }
 	         break;
 		  }
 	   }
 	   
+       if (alertViolation) {
+	       if (gameSchedule.schedule.enableAlerts) {
+			    NflScheduleAlert alert = new NflScheduleAlert();
+			    String team1;
+			    String team2;
+			    if (gameSchedule.game.homeTeam.compareToIgnoreCase(gameSchedule.game.awayTeam) < 0) {
+			    	team1 = gameSchedule.game.homeTeam;
+			    	team2 = gameSchedule.game.awayTeam;
+			    }
+			    else {
+			    	team1 = gameSchedule.game.awayTeam;
+			    	team2 = gameSchedule.game.homeTeam;
+			    }
+			    alert.alertDescr = "Repeated Matchup: " + team1 + " vs " + team2 + " first matchup week: " + firstMatchupWeek + " last matchup week: " + lastMatchupWeek;
+			    gameSchedule.schedule.addAlert(alert);
+	       }
+       }
+
 	   //System.out.println("Info: No Repeated Matchup metric for game, weekNum: " + weekNum + " home team: " + gameSchedule.game.homeTeam + " away team: " + gameSchedule.game.awayTeam
        //           + ", score: " + score);
 	   return true;

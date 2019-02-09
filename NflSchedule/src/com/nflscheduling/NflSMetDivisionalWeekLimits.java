@@ -37,11 +37,13 @@ public class NflSMetDivisionalWeekLimits extends NflScheduleMetric {
 	      
 	      if (!limitViolated.isEmpty()) {
 	         NflScheduleAlert alert = new NflScheduleAlert();
-	         alert.alertDescr = metricName;
-	         alert.weekNum = wi;
-	         alert.homeTeam = limitViolated;
-	         alert.awayTeam = Integer.toString(divisionalGameCount);
-	         schedule.alerts.add(alert);
+	         //alert.alertDescr = metricName;
+	         //alert.weekNum = wi;
+	         //alert.homeTeam = limitViolated;
+	         //alert.awayTeam = Integer.toString(divisionalGameCount);
+	         //schedule.alerts.add(alert);
+			 alert.alertDescr = "Divisional Week Limit: " + limitViolated + " in Week: " + wi + " divisional game count: " + divisionalGameCount;
+			 schedule.addAlert(alert);
 	      }
 	   }
 

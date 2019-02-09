@@ -10,6 +10,8 @@ public class NflTeam {
    public String teamName;
    public double timezone;
    public String stadium;
+   public String conference;
+   public String division;
    
    public NflGame[] scheduledGames;
 
