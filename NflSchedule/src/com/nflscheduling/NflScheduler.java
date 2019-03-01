@@ -85,9 +85,9 @@ public class NflScheduler {
    
    public NflPartialScheduleEntry[] partialSchedules;
    
-   // fingerPrintCountMap
-   //    Keeps track of each unique fully scheduled week as a partial schedule fingerprint and a repeat count
-   //    one entry for every unique successful scheduled week
+   // fingerPrintMap
+   //    Keeps track of each unique full or partial scheduled week as a partial schedule fingerprint and a repeat count
+   //    one entry for every unique scheduled week (full or partial)
    //    if we encounter the same schedule more than once, we increment the count in the existing entry, fail the week
    //    So iterations (iterNum) - reschedule events (reschedLog/2) (failed+repeated fp) = unique partial schedule fingerprints (in collection)
    //    TBD: validate that last calculation - understand it deeply
@@ -97,14 +97,15 @@ public class NflScheduler {
    //    Create Log File: logPartialScheduleResults.csv
    //    iteration start (scheduleUnrestrictedWeek): iterNum++
    //       Successfully schedule a week: call logPartialScheduleHistory
-   //           Add new or updated entry (count increment) to fingerPrintCountMap - may not increase the number of entries
+   //           Add new or updated entry (count increment) to fingerPrintMap - may not increase the number of entries
    //           Fail the week if it has a repeated FP
    //       Fail to complete the weeks schedule: call logPartialScheduleHistory
-   //           Don't add new or updated entry to fingerPrintCountMap, unnecessarily calculates partialScheduleEntry
+   //           Don't add new or updated entry to fingerPrintMap, unnecessarily calculates partialScheduleEntry
    //           and unnecessarily updates schedule.latestScheduleFingerPrint
 
-   public HashMap<Double, Integer> fingerPrintCountMap = new HashMap<Double, Integer>();
-   
+   //public HashMap<Double, Integer> fingerPrintMap = new HashMap<Double, Integer>();
+   public HashMap<Double, NflPartialScheduleEntry> fingerPrintMap;
+
    public int fpSkipCount = 0;   // Counts number of repeated encounters of a FingerPrint after completing a fully scheduled week
                                         // Each encounter is failed, causing a backtrack rescheduling attempt
    
@@ -178,7 +179,6 @@ public class NflScheduler {
    }
    
    public boolean generateSchedules() {
-	  reschedLog = new ArrayList<String>();
       //---------- Schedule Initialization --------------------
       // create next curSchedule
 	  // initialize unscheduledGames of the curSchedule from all the modeled games
@@ -189,7 +189,14 @@ public class NflScheduler {
 	
 		  // Schedule games that are restricted - according to the restrictedGames
 		  scheduleForcedGames(restrictedGames, curSchedule);
-	
+		  
+		  reschedLog = new ArrayList<String>();
+		  openBriefLogFile();
+		  openPartialScheduleLogFile();
+		  iterNum = 0;
+		  fingerPrintMap = new HashMap<Double, NflPartialScheduleEntry>();
+		  fpSkipCount = 0;
+
 		  // Schedule the remaining unrestricted games
 		  scheduleUnrestrictedGames(curSchedule);
 	
@@ -979,15 +986,15 @@ public class NflScheduler {
 
          System.out.println("reschedWeekNum: " + reschedWeekNum);
          
+         System.out.println("Weeks Schedule Attempts: " + iterNum + "  (Iterations: Failed+Successful unique)");
          if (!reschedLog.isEmpty()) {
-             System.out.println(reschedLog.get(reschedLog.size()-1));
-             System.out.println("Rescheduled Weeks: " + reschedLog.size()/2);
+             //System.out.println(reschedLog.get(reschedLog.size()-1));
+             System.out.println("Failed Weeks:            " + reschedLog.size()/2 + "  (Incomplete, Identical.Complete.skip)");
          }
          
-         System.out.println("Reschedule Week Iterations: " + iterNum);
-         System.out.println("Reschedule FP skip count: " + fpSkipCount);
-         System.out.println("Reschedule FP collection size: " + fingerPrintCountMap.size());
-         Set set = fingerPrintCountMap.entrySet();
+         System.out.println("Unique,Successful Weeks:   " + fingerPrintMap.size() + "   (Unique FP collection size)");
+         System.out.println("Repeated,Successful Weeks: " + fpSkipCount + "   (Reschedule Non-Unique FP skip count)");
+         Set set = fingerPrintMap.entrySet();
          Iterator iterator = set.iterator();
 /*
          while(iterator.hasNext()) {
@@ -1055,8 +1062,8 @@ public class NflScheduler {
 
       iterNum++;
 	  //unscheduledTeams.clear();
-	   //if (fingerPrintCountMap.containsKey(partialScheduleEntry.fingerPrint)) {
-		//   count = fingerPrintCountMap.get(partialScheduleEntry.fingerPrint);
+	   //if (fingerPrintMap.containsKey(partialScheduleEntry.fingerPrint)) {
+		//   count = fingerPrintMap.get(partialScheduleEntry.fingerPrint);
 
 	  while ((schedTeamsInWeek = schedule.scheduledTeamsInWeek(weekNum)) < NflDefs.numberOfTeams) {
          game = scheduleNextUnrestrictedGameInWeek(schedule, weekNum);
@@ -1096,21 +1103,16 @@ public class NflScheduler {
 	  // set false/failed - maybe b/c don't want to continue with a repeated fp
 	  // Log the fp in the logPartialScheduleResults.csv file
 	  
-	  if (status == true && fingerPrintCountMap.containsKey(schedule.latestScheduleFingerPrint)) {
-		  SchedFingerPrintCount = fingerPrintCountMap.get(schedule.latestScheduleFingerPrint);
-		  if (SchedFingerPrintCount > 1 && weekNum < NflDefs.numberOfWeeks - 1) {
-			  status = false;
-			  fpSkipCount++;
-			  try {
-				  // write the partial schedule log entry to the csv file
-				  partialScheduleLogBw.write(schedule.latestScheduleFingerPrint + "," + weekNum + "," + iterNum + "," + -1 + "," + -1 + "," + SchedFingerPrintCount + "\n");
-			  } catch (IOException e) {
-				  e.printStackTrace();
-			  } 
-		  }
-	  }
+	  if (status == true && fingerPrintMap.containsKey(schedule.latestScheduleFingerPrint)) {
+		 NflPartialScheduleEntry partialScheduleEntry = fingerPrintMap.get(schedule.latestScheduleFingerPrint);
+         SchedFingerPrintCount = partialScheduleEntry.count;
+         if (SchedFingerPrintCount > 1 && weekNum < NflDefs.numberOfWeeks - 1) {
+            status = false;
+            fpSkipCount++;
+         }
+      }
 
-	  return status;
+      return status;
    }
    
    // possibly modularize this function to facilitate scheduling a game and/or scheduling a bye
@@ -1509,8 +1511,8 @@ public class NflScheduler {
 	   int reschedAttemptedMaxWeek = 0;
 	   int goBackToWeekNum = 0;
 
-	   openBriefLogFile();
-	   openPartialScheduleLogFile();
+	   //openBriefLogFile();
+	   //openPartialScheduleLogFile();
 
 	   for (int weekNum=NflDefs.numberOfWeeks; weekNum >= 1; weekNum--) {
 		   reschedAttemptsSameWeek = 0;
@@ -1590,19 +1592,17 @@ public class NflScheduler {
 					   return false;
 				   }
 
-				   shouldClearHistory = false;
+				   //shouldClearHistory = false;
 			   }
 			   
-
 			   // System.out.println("Iteration: " + iterNum + ", reschedAttemptsSameWeek: " + reschedAttemptsSameWeek + " for week: " + weekNum + ", reschedAttemptsOneWeekBack: " + reschedAttemptsOneWeekBack + ", reschedAttemptsMultiWeeksBack: " + reschedAttemptsMultiWeeksBack + ", reschedAttemptedMaxWeek: " + reschedAttemptedMaxWeek + ", goBackToWeekNum: " + goBackToWeekNum + "\n");
 			   if (!updateDemotionInfo(schedule, goBackToWeekNum)) {
 				   System.out.println("updateDemotionInfo - failed");
 				   return false;
 			   }
 			   
-
 			   if (!updatePromotionInfo(schedule)) {
-				   System.out.println("updateDemotionInfo - failed");
+				   System.out.println("updatePromotionInfo - failed");
 				   return false;
 			   }
 
@@ -1637,8 +1637,8 @@ public class NflScheduler {
              
              if (clearHistory) {
             	if (gameSched.demotionPenalty > 0)
-    		    System.out.println("Clearing history: during week: " + weekNum + " DemotionPenalty was " + gameSched.demotionPenalty + ", weekSequence: " + gameSched.weekScheduleSequence + " for game: " + gameSched.game.homeTeam + " : " + gameSched.game.awayTeam);
-                gameSched.weekScheduleSequence = 0;
+    		    //System.out.println("Clearing history: during week: " + weekNum + " DemotionPenalty was " + gameSched.demotionPenalty + ", weekSequence: " + gameSched.weekScheduleSequence + " for game: " + gameSched.game.homeTeam + " : " + gameSched.game.awayTeam);
+                //gameSched.weekScheduleSequence = 0;
             	gameSched.demotionCount = 0;
             	gameSched.demotionPenalty = 0;
              }
@@ -1813,6 +1813,40 @@ public class NflScheduler {
 	  // loop through unscheduled games
 	  // if demotionCount <= 1 demotion penalty = 0
 	  // if demotionCount > 1, keep demotion penalty unmodified
+	   
+	  // Find the partialScheduleEntry for weekNum
+	  // Find the "Game in Week" with the highest penalty, remove it and demote it
+	   
+	  NflPartialScheduleEntry partialScheduleEntry = partialSchedules[weekNum-1];
+	  NflGameSchedule gameScheduledLast = null;
+	  for (NflGameSchedule gameSched: partialScheduleEntry.gamesInWeek) {
+		  if (gameScheduledLast == null || 
+              gameSched.weekScheduleSequence > gameScheduledLast.weekScheduleSequence) {
+			  gameScheduledLast = gameSched;
+			  continue;
+		  }		  
+	  }
+ 
+	  if (gameScheduledLast == null) {
+		  return false;
+	  }
+	  
+	  partialScheduleEntry.gamesInWeek.remove(gameScheduledLast);
+	  
+	  gameScheduledLast.demotionPenalty = 2;
+	  		 		         
+	  return true;
+   }
+	  
+   /*
+    * 
+   public boolean updateDemotionInfo(NflSchedule schedule, int weekNum) {
+	  // loop through unscheduled games
+	  // if demotionCount <= 1 demotion penalty = 0
+	  // if demotionCount > 1, keep demotion penalty unmodified
+	   
+	  // Find the partialScheduleEntry for weekNum
+	  // Find the "Game in Week" with the highest penalty, remove it and demote it
 	  for (int gi=0; gi < schedule.unscheduledGames.size(); gi++) {
          NflGameSchedule usgame = schedule.unscheduledGames.get(gi);
 		 
@@ -1841,6 +1875,7 @@ public class NflScheduler {
 	  return true;
    }
 	  
+    */
    public boolean initPromotionInfo(NflSchedule schedule) {
 	   for (int gi=0; gi < schedule.unscheduledGames.size(); gi++) {
           NflGameSchedule usgame = schedule.unscheduledGames.get(gi);
@@ -1866,7 +1901,6 @@ public class NflScheduler {
    }
    
    public boolean openBriefLogFile() {
-
 	      try {
 	    	 briefLogFw = new FileWriter("logBriefSchedResults.csv");
 	         briefLogBw = new BufferedWriter(briefLogFw);
@@ -1981,38 +2015,111 @@ public class NflScheduler {
 
 	   
    public boolean openPartialScheduleLogFile() {
-	   try {
-		   partialScheduleLogFw = new FileWriter("logPartialScheduleResults.csv");
-		   partialScheduleLogBw = new BufferedWriter(partialScheduleLogFw);
+      try {
+         partialScheduleLogFw = new FileWriter("logPartialScheduleResults.csv");
+         partialScheduleLogBw = new BufferedWriter(partialScheduleLogFw);
 
-		   // write the header to the file
-		   partialScheduleLogBw.write("FingerPrint,Week,Iteration,Unscheduled,BaseFP,Count \n");
-	   } catch (FileNotFoundException e) {
-		   e.printStackTrace();
-	   } catch (IOException e) {
-		   e.printStackTrace();
-	   } 
+         // write the header to the file
+         partialScheduleLogBw.write("FingerPrint,Week,Iteration,Unscheduled,BaseFP,Count \n");
+	  } catch (FileNotFoundException e) {
+         e.printStackTrace();
+	  } catch (IOException e) {
+		 e.printStackTrace();
+	  } 
 
-	   return true;
+	  return true;
    }
    
    public boolean closePartialScheduleLogFile() {
-	   if (partialScheduleLogBw != null) {
-		   try {
-			   partialScheduleLogBw.close();
-		   } catch (IOException e) {
-			   e.printStackTrace();
-		   }
-	   }
+      if (partialScheduleLogBw != null) {
+         try {
+            partialScheduleLogBw.close();
+         } catch (IOException e) {
+            e.printStackTrace();
+         }
+      }
 
-	   return true;
+      return true;
    }
 
    public boolean logPartialScheduleHistory(NflSchedule schedule, int weekNum) {
 	   // Construct a record for the full partial schedule up to this week
 	   // Use the partial schedule fingerprint from the previous week to add onto for this week using hashcodes and the weeknum
+	   
+	   // Create a partial schedule entry for weekNum
+	   NflPartialScheduleEntry partialScheduleEntry = new NflPartialScheduleEntry();
+	   	   
+	   // use a local object to access the partial schedules entry for weekNum
+	   // and populate it with current schedule state information for this week
+	   
+	   partialScheduleEntry.unscheduledTeams = 0;
+	   partialScheduleEntry.fingerPrint = 0.0;
+	   partialScheduleEntry.baseFingerPrint = 0.0;
+	   partialScheduleEntry.count = 0;
+	   partialScheduleEntry.gamesInWeek = new ArrayList<NflGameSchedule>();
 
-	   double baseFingerPrint = 0.0;
+	   // Initialize base fingerprint append new fingerprint info to - from the previous weeks fingerprint
+	   // Unless this is the very last week in the schedule - where there is no previous week to get a fingerprint from 
+	   
+	   if (weekNum < NflDefs.numberOfWeeks) {
+		   partialScheduleEntry.baseFingerPrint = partialSchedules[weekNum].fingerPrint;
+		   partialScheduleEntry.fingerPrint = partialScheduleEntry.baseFingerPrint;
+	   }
+
+	   // Extend the partial schedule fingerprint from the previous weeks from the games of this week
+	   // using the hash code of each game as a unique id of each scheduled game for this week
+	   // Also keep track of the unscheduled games for this week
+	          
+	   for (NflTeamSchedule teamSchedule: schedule.teamSchedules) {
+		   NflGameSchedule gameSched = teamSchedule.scheduledGames[weekNum-1];
+		   if (gameSched != null) {
+			   partialScheduleEntry.fingerPrint += (double) gameSched.hashCode()*Math.pow(NflDefs.numberOfWeeks-weekNum+1,2);
+			   partialScheduleEntry.gamesInWeek.add(gameSched);
+		   }
+		   else {
+			   partialScheduleEntry.unscheduledTeams++;
+		   }
+	   }
+	   
+	   // Update the partial schedule fingerprint in the partial schedule repository
+	   // if All teams were scheduled for this week
+	   
+	   if (partialScheduleEntry.unscheduledTeams == 0) {
+		  if (fingerPrintMap.containsKey(partialScheduleEntry.fingerPrint)) {
+			 partialScheduleEntry = fingerPrintMap.get(partialScheduleEntry.fingerPrint);
+		  }
+		  else {
+		     fingerPrintMap.put(partialScheduleEntry.fingerPrint, partialScheduleEntry);
+		  }
+		  
+		  //partialScheduleEntry.iterNum = iterNum;
+		  //partialScheduleEntry.weekNum = weekNum;
+          partialScheduleEntry.count += 1;
+   	      partialSchedules[weekNum-1] = partialScheduleEntry; // store the partial schedule entry for this week
+
+		  try {
+	         // write the partial schedule log entry to the csv file
+			 partialScheduleLogBw.write(partialScheduleEntry.fingerPrint + "," + weekNum + "," + iterNum + "," + partialScheduleEntry.unscheduledTeams + "," + 
+	                                    partialScheduleEntry.baseFingerPrint + "," + partialScheduleEntry.count + "\n");
+		  } catch (IOException e) {
+			 e.printStackTrace();
+		  } 
+	   }
+       partialScheduleEntry.iterNum = iterNum;
+       partialScheduleEntry.weekNum = weekNum;
+       //partialScheduleEntry.count += 1;
+	   partialSchedules[weekNum-1] = partialScheduleEntry; // store the partial schedule entry for this week
+	   
+	   schedule.latestScheduleFingerPrint = partialScheduleEntry.fingerPrint;
+
+	   return true;
+   }
+   
+   /*
+    * 
+   public boolean logPartialScheduleHistory(NflSchedule schedule, int weekNum) {
+	   // Construct a record for the full partial schedule up to this week
+	   // Use the partial schedule fingerprint from the previous week to add onto for this week using hashcodes and the weeknum
 	   
 	   // Create the partial schedule entry if not yet created for weekNum
 	   if (partialSchedules[weekNum-1] == null) {
@@ -2027,26 +2134,28 @@ public class NflScheduler {
 	   partialScheduleEntry.weekNum = weekNum;
 	   partialScheduleEntry.unscheduledTeams = 0;
 	   partialScheduleEntry.fingerPrint = 0.0;
+	   partialScheduleEntry.baseFingerPrint = 0.0;
+	   partialScheduleEntry.count = 0;
 
 	   // Initialize base fingerprint append new fingerprint info to - from the previous weeks fingerprint
 	   // Unless this is the very last week in the schedule - where there is no previous week to get a fingerprint from 
 	   
 	   if (weekNum < NflDefs.numberOfWeeks) {
-		   partialScheduleEntry.fingerPrint = partialSchedules[weekNum].fingerPrint;
-		   baseFingerPrint = partialSchedules[weekNum].fingerPrint;
+		   partialScheduleEntry.baseFingerPrint = partialSchedules[weekNum].fingerPrint;
+		   partialScheduleEntry.fingerPrint = partialScheduleEntry.baseFingerPrint;
 	   }
 
 	   // Extend the partial schedule fingerprint from the previous weeks from the games of this week
 	   // using the hash code of each game as a unique id of each scheduled game for this week
 	   // Also keep track of the unscheduled games for this week
-	   
+	          
 	   for (NflTeamSchedule teamSchedule: schedule.teamSchedules) {
 		   NflGameSchedule gameSched = teamSchedule.scheduledGames[weekNum-1];
 		   if (gameSched != null) {
-			   partialScheduleEntry.fingerPrint += (double) gameSched.hashCode()*Math.pow(NflDefs.numberOfWeeks-weekNum+1,2);
+              partialScheduleEntry.fingerPrint += (double) gameSched.hashCode()*Math.pow(NflDefs.numberOfWeeks-weekNum+1,2);
 		   }
 		   else {
-			   partialScheduleEntry.unscheduledTeams++;
+              partialScheduleEntry.unscheduledTeams++;
 		   }
 	   }
 	   
@@ -2054,25 +2163,31 @@ public class NflScheduler {
 	   // if All teams were scheduled for this week
 	   
 	   if (partialScheduleEntry.unscheduledTeams == 0) {
-		   Integer count = 1;
+          Integer count = 1;
 
-		   if (fingerPrintCountMap.containsKey(partialScheduleEntry.fingerPrint)) {
-			   count = fingerPrintCountMap.get(partialScheduleEntry.fingerPrint);
-			   count += 1;
-		   }
-		   fingerPrintCountMap.put(partialScheduleEntry.fingerPrint, count);
-		   try {
-			   // write the partial schedule log entry to the csv file
-			   partialScheduleLogBw.write(partialScheduleEntry.fingerPrint + "," + weekNum + "," + iterNum + "," + partialScheduleEntry.unscheduledTeams + "," + baseFingerPrint + "," + count + "\n");
-		   } catch (IOException e) {
-			   e.printStackTrace();
-		   } 
+		  if (fingerPrintMap.containsKey(partialScheduleEntry.fingerPrint)) {
+             NflPartialScheduleEntry partialSchedule = fingerPrintMap.get(partialScheduleEntry.fingerPrint);
+             partialSchedule.count += 1;
+             count = partialSchedule.count;
+	         //count = fingerPrintMap.get(partialScheduleEntry.fingerPrint);
+			 //count += 1;
+		  }
+		  
+		  //fingerPrintMap.put(partialScheduleEntry.fingerPrint, count);
+		  try {
+	         // write the partial schedule log entry to the csv file
+			 partialScheduleLogBw.write(partialScheduleEntry.fingerPrint + "," + weekNum + "," + iterNum + "," + partialScheduleEntry.unscheduledTeams + "," + partialScheduleEntry.baseFingerPrint + "," + count + "\n");
+		  } catch (IOException e) {
+			 e.printStackTrace();
+		  } 
 	   }
+	   
 	   schedule.latestScheduleFingerPrint = partialScheduleEntry.fingerPrint;
-
 
 	   return true;
    }
+    * 
+    */
 }
 
 
