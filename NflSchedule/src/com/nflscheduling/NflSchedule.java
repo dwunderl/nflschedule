@@ -18,6 +18,8 @@ public class NflSchedule {
    public ArrayList<NflScheduleAlert> alerts;
  
    public double score = 0.0;
+   public int hardViolationCount = 0;
+   public String hardViolations = "";
    public boolean enableAlerts = false;
    public int byesToScheduleThisWeek;
    public double latestScheduleFingerPrint;
@@ -31,7 +33,7 @@ public class NflSchedule {
    //    allGames
    
    NflSchedule() {
-      System.out.println("Creating an nflSchedule");
+      //System.out.println("Creating an nflSchedule");
    }
 
    public boolean init(ArrayList<NflTeam> teams, 
@@ -256,13 +258,19 @@ public class NflSchedule {
 
    public boolean computeMetrics() {
       score = 0.0;
+      hardViolationCount = 0;
+      
       enableAlerts = true;
       for (int mi=0; mi < scheduleMetrics.size(); mi++) {
          NflScheduleMetric scheduleMetric = scheduleMetrics.get(mi);
          //System.out.println("Computing Metric: " + gameMetric.metricName + " for game: " + game.homeTeam + " : " + game.awayTeam);
          scheduleMetric.computeMetric(this);
          score += scheduleMetric.score;
-         System.out.println("Computing ScheduleMetric: " + scheduleMetric.metricName + " score: " + scheduleMetric.score);
+         if (scheduleMetric.hardViolation) {
+        	 hardViolationCount++;
+        	 hardViolations = hardViolations + ";" + scheduleMetric.metricName;
+         }
+         //System.out.println("Computing ScheduleMetric: " + scheduleMetric.metricName + " score: " + scheduleMetric.score);
       }
       
       return true;
@@ -287,6 +295,21 @@ public class NflSchedule {
     * 
     */
    
+   public int byeCounts(int weekNum) {
+	   int byeCount = 0;
+	   
+       for (NflTeamSchedule teamSchedule: teamSchedules) {
+          if (teamSchedule.scheduledGames[weekNum-1] != null) {
+             NflGameSchedule scheduledGame = teamSchedule.scheduledGames[weekNum-1];
+             if (scheduledGame.isBye) {
+            	 byeCount++;
+             }
+          }
+       }
+        
+       return byeCount;
+   }
+
    public int divisionalGameCount(int weekNum) {
 	   int divisionalGameCount = 0;
 	   

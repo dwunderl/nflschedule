@@ -16,6 +16,7 @@ public class NflSMetDivisionalWeekLimits extends NflScheduleMetric {
 	@Override
 	public boolean computeMetric(NflSchedule schedule) {
 	   score = 0;
+	   hardViolation = false;
 	   
 	   for (int wi=1; wi <= NflDefs.numberOfWeeks-1; wi++) {
 		  int divisionalGameCount = schedule.divisionalGameCount(wi);
@@ -25,6 +26,7 @@ public class NflSMetDivisionalWeekLimits extends NflScheduleMetric {
 	      if (divisionalGameCount > 11) {
 	         score = 2.0;
 	         limitViolated = " > 11";
+	         hardViolation = true;
 	      }
 	      else if (divisionalGameCount > 8) {
 	         score = 1.0;
@@ -33,6 +35,7 @@ public class NflSMetDivisionalWeekLimits extends NflScheduleMetric {
 	      else if (divisionalGameCount < 2) {
 	    	  score = 1.0;
 		      limitViolated = " < 2";
+		      hardViolation = true;
 	      }
 	      
 	      if (!limitViolated.isEmpty()) {

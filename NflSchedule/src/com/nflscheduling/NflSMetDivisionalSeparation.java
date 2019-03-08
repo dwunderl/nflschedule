@@ -16,6 +16,8 @@ public class NflSMetDivisionalSeparation extends NflScheduleMetric {
 	@Override
 	public boolean computeMetric(NflSchedule schedule) {
       score = 0;
+      hardViolation = false;
+      
       for (int ti=1; ti <= NflDefs.numberOfTeams; ti++) {
          NflTeamSchedule teamSchedule = schedule.teamSchedules.get(ti-1);
          for (int wi1=1; wi1 <= 4; wi1++) {
@@ -35,13 +37,14 @@ public class NflSMetDivisionalSeparation extends NflScheduleMetric {
 	           if (teamGame1.game.awayTeam.equalsIgnoreCase(teamGame2.game.homeTeam) &&
 	               teamGame1.game.homeTeam.equalsIgnoreCase(teamGame2.game.awayTeam)) {
 	               score+= 2.0;
-	    		   System.out.println("ScheduleMetric : DivisionalSeparation alert for weeks: " + wi1 + ", " + wi2 + " teams: " + teamGame1.game.homeTeam + ", " + teamGame1.game.awayTeam);
+	    		   //System.out.println("ScheduleMetric : DivisionalSeparation alert for weeks: " + wi1 + ", " + wi2 + " teams: " + teamGame1.game.homeTeam + ", " + teamGame1.game.awayTeam);
 	    		   NflScheduleAlert alert = new NflScheduleAlert();
 	    		   alert.alertDescr = metricName;
 	    		   alert.weekNum = wi2;
 	    		   alert.homeTeam = teamGame2.game.homeTeam;
 	    		   alert.awayTeam = teamGame2.game.awayTeam;
 	    		   schedule.alerts.add(alert);
+	    		   hardViolation = true;
 	           }
 	        }
          }

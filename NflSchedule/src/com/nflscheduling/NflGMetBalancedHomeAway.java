@@ -55,18 +55,61 @@ public class NflGMetBalancedHomeAway extends NflGameMetric {
 	    	   }
 	       }
 	       
-	       if (homeTeamScheduledGames == 0 || awayTeamScheduledGames == 0) {
+	       if (homeTeamScheduledGames == 0) {
 	    	   // avoid divide by 0
-	    	   return true;
+	    	   homeTeamScheduledGames = 1;
+	    	   homeTeamScheduledHomeGames++;
 	       }
 	       
-	       double beforeHomeTeamBalanceMetric = Math.abs((double) homeTeamScheduledHomeGames/(double) homeTeamScheduledGames - 0.5);
-	       double afterHomeTeamBalanceMetric = Math.abs((double) (homeTeamScheduledHomeGames+1)/(double) (homeTeamScheduledGames+1) - 0.5);
+	       if (awayTeamScheduledGames == 0) {
+	    	   // avoid divide by 0
+	    	   awayTeamScheduledGames = 1;
+	    	   awayTeamScheduledHomeGames++;
+	       }
+       
+	       double beforeHomeTeamBalanceMetric = Math.abs((double) homeTeamScheduledHomeGames/(double) homeTeamScheduledGames);
+	       double afterHomeTeamBalanceMetric = Math.abs((double) (homeTeamScheduledHomeGames+1)/(double) (homeTeamScheduledGames+1));
 
-	       double beforeAwayTeamBalanceMetric = Math.abs((double) awayTeamScheduledHomeGames/(double) awayTeamScheduledGames - 0.5);
-	       double afterAwayTeamBalanceMetric = Math.abs((double) (awayTeamScheduledHomeGames)/(double) (awayTeamScheduledGames+1) - 0.5);
+	       double beforeAwayTeamBalanceMetric = Math.abs((double) awayTeamScheduledHomeGames/(double) awayTeamScheduledGames);
+	       double afterAwayTeamBalanceMetric = Math.abs((double) (awayTeamScheduledHomeGames)/(double) (awayTeamScheduledGames+1));
+
+	       boolean homeBalanceBetter = afterHomeTeamBalanceMetric <= 0.5;
+	       boolean homeBalanceNeutral = beforeHomeTeamBalanceMetric < 0.5 && afterHomeTeamBalanceMetric > 0.5;
+	       boolean homeBalanceWorse = beforeHomeTeamBalanceMetric >= 0.5;
 	       
-	       score = (afterHomeTeamBalanceMetric - beforeHomeTeamBalanceMetric) + (afterAwayTeamBalanceMetric - beforeAwayTeamBalanceMetric);
+	       boolean awayBalanceBetter = afterAwayTeamBalanceMetric >= 0.5;
+	       boolean awayBalanceNeutral = beforeAwayTeamBalanceMetric > 0.5 && afterHomeTeamBalanceMetric < 0.5;
+	       boolean awayBalanceWorse = beforeAwayTeamBalanceMetric <= 0.5;
+	       
+	       if (homeBalanceBetter && awayBalanceBetter) {
+	    	   score = -2.0;
+	       }
+	       else if (homeBalanceBetter && awayBalanceNeutral) {
+	    	   score = -1.0;
+	       }
+	       else if (homeBalanceBetter && awayBalanceWorse) {
+	    	   score = 0.0;
+	       }
+	       else if (homeBalanceNeutral && awayBalanceBetter) {
+	    	   score = -1.0;
+	       }
+	       else if (homeBalanceNeutral && awayBalanceNeutral) {
+	    	   score = 0.0;
+	       }
+	       else if (homeBalanceNeutral && awayBalanceWorse) {
+	    	   score = 2.0;
+	       }
+	       else if (homeBalanceWorse && awayBalanceBetter) {
+	    	   score = 0.0;
+	       }
+	       else if (homeBalanceWorse && awayBalanceNeutral) {
+	    	   score = 1.0;
+	       }
+	       else if (homeBalanceWorse && awayBalanceWorse) {
+	    	   score = 4.0;
+	       }
+	       
+	       //score = (afterHomeTeamBalanceMetric - beforeHomeTeamBalanceMetric) + (afterAwayTeamBalanceMetric - beforeAwayTeamBalanceMetric);
 	        
 		   //System.out.println("Info: Balanced Home Away metric for game, weekNum: " + weekNum + " home team: " + homeTeamSched.team.teamName + " away team: " + awayTeamSched.team.teamName
 		   // 		                + ", score: " + score);

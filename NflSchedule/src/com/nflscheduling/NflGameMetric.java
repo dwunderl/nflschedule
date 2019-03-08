@@ -14,6 +14,7 @@ public class NflGameMetric {
    public double  scoreAwayTeam;
    public double  score;   // combined and weighted 
    public boolean isScheduleMetric = true;
+   public boolean hardViolation = false;
 
    NflGameMetric(String theName, NflGameSchedule theGameSchedule) {
       //System.out.println("Creating an nflGameMetric");
@@ -31,7 +32,4 @@ public class NflGameMetric {
    public boolean isScheduleMetric() {
       return isScheduleMetric;
    }
-   
-   
-
 }

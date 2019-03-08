@@ -15,10 +15,10 @@ public class NflResourceSchedule {
        usage = new int[NflDefs.numberOfWeeks];
        schedule = theSchedule;
        //System.out.println("Construct NflResourceSchedule for : " + resource.resourceName + " , resource.weeknum: " + resource.weekNum);
-       System.out.println("Construct NflResourceSchedule for : " + resource.resourceName);
-	   for (int weekNum=NflDefs.numberOfWeeks; weekNum >= 1; weekNum--) {
-	       System.out.println("   weeknum: " + weekNum + " limit : " + resource.weeklyLimit[weekNum-1] + "  minimum : " + resource.weeklyMinimum[weekNum-1]);
-	   }
+       //System.out.println("Construct NflResourceSchedule for : " + resource.resourceName);
+	   //for (int weekNum=NflDefs.numberOfWeeks; weekNum >= 1; weekNum--) {
+	       //System.out.println("   weeknum: " + weekNum + " limit : " + resource.weeklyLimit[weekNum-1] + "  minimum : " + resource.weeklyMinimum[weekNum-1]);
+	   //}
 
     }	
 	

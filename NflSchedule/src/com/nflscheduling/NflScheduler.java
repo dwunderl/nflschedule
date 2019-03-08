@@ -161,18 +161,18 @@ public class NflScheduler {
 	      
 	  // Debug output for initial schedule basic structural info
 	  // ------------------------------------------------------
-	  System.out.println("curSchedule.teams size is: " + curSchedule.teamSchedules.size());
+	  //System.out.println("curSchedule.teams size is: " + curSchedule.teamSchedules.size());
 	      
-	  for (int i=0; i < curSchedule.teamSchedules.size(); i++) {
-	     NflTeamSchedule teamSchedule = curSchedule.teamSchedules.get(i);
-	     System.out.println("team: " + i + ", " + teamSchedule.team.teamName);
-	  }
+	  //for (int i=0; i < curSchedule.teamSchedules.size(); i++) {
+	     //NflTeamSchedule teamSchedule = curSchedule.teamSchedules.get(i);
+	     //System.out.println("team: " + i + ", " + teamSchedule.team.teamName);
+	  //}
 
 	  // Dump the resource data
-	  System.out.println("attr limit length is: " + curSchedule.resourceSchedules.size());
-	  System.out.println("attr limit (1) intervals length is: " + resources.get(0).weeklyLimit.length);
-	  System.out.println("attr limit[1].weeklyLimit[1] is: " + resources.get(0).weeklyLimit.length);
-	  System.out.println("attr limit[1].weeklyLimit[numberOfWeeks] is: " + resources.get(0).weeklyLimit.length);
+	  //System.out.println("attr limit length is: " + curSchedule.resourceSchedules.size());
+	  //System.out.println("attr limit (1) intervals length is: " + resources.get(0).weeklyLimit.length);
+	  //System.out.println("attr limit[1].weeklyLimit[1] is: " + resources.get(0).weeklyLimit.length);
+	  //System.out.println("attr limit[1].weeklyLimit[numberOfWeeks] is: " + resources.get(0).weeklyLimit.length);
 	  // ------------------------------------------------------
 
 	  return true;
@@ -183,7 +183,7 @@ public class NflScheduler {
       // create next curSchedule
 	  // initialize unscheduledGames of the curSchedule from all the modeled games
 	int scheduleAttempts;
-	
+
 	for (scheduleAttempts = 0; scheduleAttempts < NflDefs.scheduleAttempts; scheduleAttempts++) {
 	      scheduleInit();
 	
@@ -203,10 +203,12 @@ public class NflScheduler {
 		  closeBriefLogFile();
 		  closePartialScheduleLogFile();
 	
-		  System.out.println("Total Schedule Metric: " + curSchedule.score);
+		  //System.out.println("Total Schedule Metric: " + curSchedule.score);
+
 		  if (curSchedule.unscheduledGames.size() == 0) {
 			  curSchedule.computeMetrics();
-			  if (curSchedule.alerts.size() <= NflDefs.alertLimit) {
+		      System.out.println("Schedule: " + scheduleAttempts + ", Total Schedule Metric: " + curSchedule.score + " Total Alerts: " + curSchedule.alerts.size() + " Total hard violations: " + curSchedule.hardViolationCount + " vios: " + curSchedule.hardViolations);
+			  if (curSchedule.alerts.size() <= NflDefs.alertLimit && curSchedule.hardViolationCount <= 2) {
 			     schedules.add(curSchedule);
 			     writeScheduleCsv(curSchedule, "curSchedule" + schedules.size() + ".csv");
 			     if (schedules.size() >= NflDefs.savedScheduleLimit) {
@@ -215,13 +217,7 @@ public class NflScheduler {
 			  }
 		  }
 	  }
-	  
-	  int sCount = 0;
-	  for(NflSchedule s: schedules) {
-		 sCount++;
-		 System.out.println("Schedule: " + sCount + ", Total Schedule Metric: " + s.score + " Total Alerts: " + s.alerts.size());
-	  }
-	  
+	  	  
 	  return true;
    }
 
@@ -421,10 +417,10 @@ public class NflScheduler {
 
             games.add(game);
 
-            System.out.println("line token length: " + token.length);
-            System.out.println("Game: " + game.homeTeam + ":" + game.awayTeam);
-            for (int i=0; i < game.attribute.size(); i++)
-               System.out.println("   " + game.attribute.get(i));
+            //System.out.println("line token length: " + token.length);
+            //System.out.println("Game: " + game.homeTeam + ":" + game.awayTeam);
+            //for (int i=0; i < game.attribute.size(); i++)
+            //   System.out.println("   " + game.attribute.get(i));
          }
       } catch (FileNotFoundException e) {
          e.printStackTrace();
@@ -486,7 +482,7 @@ public class NflScheduler {
             if (token.length > 4) {
          	   stadium = token[4];
             }
-            
+             
             if (teamName.equalsIgnoreCase("all"))
             {
                 // for (int ti=0; ti < curSchedule.teams.size(); ti++) {
@@ -497,16 +493,16 @@ public class NflScheduler {
                   NflRestrictedGame restrictedGame = new NflRestrictedGame(team.teamName, weekNum, restriction, otherTeamName, stadium);
                   weeks.add(restrictedGame);
 
-                  System.out.println("line token length: " + token.length);
-                  System.out.println("Restricted game: week: " + weekNum + ", Team: " + team.teamName + ", restriction: " + restriction);
+                  //System.out.println("line token length: " + token.length);
+                  //System.out.println("Restricted game: week: " + weekNum + ", Team: " + team.teamName + ", restriction: " + restriction);
                   //System.out.println("Restricted game: week: " + weekNum + ", Team: " + teamSchedule.team.teamName + ", restriction: " + restriction);
                }
             }
             else {
                NflRestrictedGame restrictedGame = new NflRestrictedGame(teamName, weekNum, restriction, otherTeamName, stadium);
                weeks.add(restrictedGame);
-               System.out.println("line token length: " + token.length);
-               System.out.println("Week: " + restrictedGame.weekNum + ", Team: " + restrictedGame.teamName + ":");
+               //System.out.println("line token length: " + token.length);
+               //System.out.println("Week: " + restrictedGame.weekNum + ", Team: " + restrictedGame.teamName + ":");
             }
          }
       } catch (FileNotFoundException e) {
@@ -546,14 +542,14 @@ public class NflScheduler {
             for (int al=0; al < resources.size(); al++) {
                NflResource aLim = resources.get(al);
                if (aLim.resourceName.equalsIgnoreCase(attrName)) {
-                  System.out.println("aLim.attrName: " + aLim.resourceName + " == " + " attrname: " + attrName + ", so reusing");
+                  // System.out.println("aLim.attrName: " + aLim.resourceName + " == " + " attrname: " + attrName + ", so reusing");
                   resource = aLim;
                   break;
                }
             }
 
             if (resource == null) {
-                System.out.println("creating a new nflAttrLimit " + token[0]);
+                //System.out.println("creating a new nflAttrLimit " + token[0]);
                 resource = new NflResource();
                 resources.add(resource);
             }
@@ -562,7 +558,7 @@ public class NflScheduler {
             // resource.weekNum = Integer.parseInt(token[1]);
             int weekNum = Integer.parseInt(token[1]);
             // System.out.println("    weekNum " + resource.weekNum);
-            System.out.println("    weekNum " + weekNum);
+            // System.out.println("    weekNum " + weekNum);
             // System.out.println("    weeklyLimit size " + resource.weeklyLimit.length);
             //attrLimit.weeklyLimit.set(attrLimit.weekNum-1,Integer.parseInt(token[2]));
             resource.weeklyLimit[weekNum-1] = Integer.parseInt(token[2]);
@@ -571,8 +567,8 @@ public class NflScheduler {
                resource.weeklyMinimum[weekNum-1] = Integer.parseInt(token[3]);
             }
 
-            System.out.println("line token length: " + token.length);
-            ///System.out.println("AttrLimit: " + resource.resourceName + " : " + resource.weekNum + " : " + resource.weeklyLimit[resource.weekNum-1] + " : " + resource.weeklyMinimum[resource.weekNum-1]);
+            // System.out.println("line token length: " + token.length);
+            // System.out.println("AttrLimit: " + resource.resourceName + " : " + resource.weekNum + " : " + resource.weeklyLimit[resource.weekNum-1] + " : " + resource.weeklyMinimum[resource.weekNum-1]);
          }
       } catch (FileNotFoundException e) {
          e.printStackTrace();
@@ -669,13 +665,13 @@ public class NflScheduler {
                  
                  placeGameInSchedule(usBye, resWeekNum, schedule);
                  usBye.restrictedGame = true;
-                 System.out.println("scheduled restricted bye, weekNum: " + resWeekNum + " home team: " + usBye.game.homeTeam);
+                 //System.out.println("scheduled restricted bye, weekNum: " + resWeekNum + " home team: " + usBye.game.homeTeam);
 
                  break;
              }
              
              if (usBye == null || !usBye.restrictedGame) {
-                 System.out.println("ERROR: unable to find and schedule restricted bye, weekNum: " + resWeekNum + " home team: " + resTeamName);
+                 // System.out.println("ERROR: unable to find and schedule restricted bye, weekNum: " + resWeekNum + " home team: " + resTeamName);
              }
              
              continue;
@@ -790,7 +786,7 @@ public class NflScheduler {
          placeGameInSchedule(chosenGame, resWeekNum, schedule);
          
          chosenGame.restrictedGame = true;
-         System.out.println("scheduled restricted game, weekNum: " + resWeekNum + " home team: " + chosenGame.game.homeTeam + " away team: " + chosenGame.game.awayTeam + ", score: " + chosenGame.score);
+         //System.out.println("scheduled restricted game, weekNum: " + resWeekNum + " home team: " + chosenGame.game.homeTeam + " away team: " + chosenGame.game.awayTeam + ", score: " + chosenGame.score);
          
          // schedule.schedule
          // Probably just keep the game in the original game list - but mark as scheduled
@@ -884,7 +880,7 @@ public class NflScheduler {
    }
    
    public boolean writeScheduleCsv(NflSchedule schedule, String fileName) {
-      System.out.println("Entered writeScheduleCsv");
+      //System.out.println("Entered writeScheduleCsv");
       BufferedWriter bw = null;
       FileWriter fw = null;
 
@@ -955,7 +951,15 @@ public class NflScheduler {
          // Write out the schedule score
          bw.write("\nScore," + schedule.score + "\n");
 
-         // Write out Divisional Game Counts
+         // Write out Bye Counts per week
+         bw.write("\nByes");
+  	     for (int wi=1; wi <= NflDefs.numberOfWeeks; wi++) {
+ 		    int byeCountsThisWeek = schedule.byeCounts(wi);
+            bw.write("," + byeCountsThisWeek);
+  	     }
+
+         
+         // Write out Divisional Game Counts per week
          
          int first8weeksDivisionalTotal = 0;
          int second8weeksDivisionalTotal = 0;
@@ -971,6 +975,7 @@ public class NflScheduler {
             	second8weeksDivisionalTotal += divisionalGameCount;
             }
   	     }
+  	     
   	     // write out the 8 week totals summaries
   	     bw.write("\n8 week totals,,,,,,,," + first8weeksDivisionalTotal + ",,,,,,,," + second8weeksDivisionalTotal);
   	     
@@ -984,16 +989,16 @@ public class NflScheduler {
          }
          bw.write("\n");
 
-         System.out.println("reschedWeekNum: " + reschedWeekNum);
+         //System.out.println("reschedWeekNum: " + reschedWeekNum);
          
-         System.out.println("Weeks Schedule Attempts: " + iterNum + "  (Iterations: Failed+Successful unique)");
+         //System.out.println("Weeks Schedule Attempts: " + iterNum + "  (Iterations: Failed+Successful unique)");
          if (!reschedLog.isEmpty()) {
              //System.out.println(reschedLog.get(reschedLog.size()-1));
-             System.out.println("Failed Weeks:            " + reschedLog.size()/2 + "  (Incomplete, Identical.Complete.skip)");
+             //System.out.println("Failed Weeks:            " + reschedLog.size()/2 + "  (Incomplete, Identical.Complete.skip)");
          }
          
-         System.out.println("Unique,Successful Weeks:   " + fingerPrintMap.size() + "   (Unique FP collection size)");
-         System.out.println("Repeated,Successful Weeks: " + fpSkipCount + "   (Reschedule Non-Unique FP skip count)");
+         //System.out.println("Unique,Successful Weeks:   " + fingerPrintMap.size() + "   (Unique FP collection size)");
+         //System.out.println("Repeated,Successful Weeks: " + fpSkipCount + "   (Reschedule Non-Unique FP skip count)");
          Set set = fingerPrintMap.entrySet();
          Iterator iterator = set.iterator();
 /*
@@ -1004,15 +1009,15 @@ public class NflScheduler {
 */
 
          if (reschedAttemptsMultiWeeksBack < NflDefs.reschedAttemptsMultiWeeksBackLimit) {
-             System.out.println("Schedule completed");
+             //System.out.println("Schedule completed");
          }
          else {
-             System.out.println("Schedule did not complete, lowestWeekNum: " + lowestWeekNum);
+             //System.out.println("Schedule did not complete, lowestWeekNum: " + lowestWeekNum);
          }
-         System.out.println("    unscheduled games: " + curSchedule.unscheduledGames.size());
-         System.out.println("    score: " + curSchedule.score);
+         //System.out.println("    unscheduled games: " + curSchedule.unscheduledGames.size());
+         //System.out.println("    score: " + curSchedule.score);
          
-         System.out.println("Done");
+         //System.out.println("Done");
 
       } catch (IOException e) {
          e.printStackTrace();
@@ -1596,15 +1601,28 @@ public class NflScheduler {
 			   }
 			   
 			   // System.out.println("Iteration: " + iterNum + ", reschedAttemptsSameWeek: " + reschedAttemptsSameWeek + " for week: " + weekNum + ", reschedAttemptsOneWeekBack: " + reschedAttemptsOneWeekBack + ", reschedAttemptsMultiWeeksBack: " + reschedAttemptsMultiWeeksBack + ", reschedAttemptedMaxWeek: " + reschedAttemptedMaxWeek + ", goBackToWeekNum: " + goBackToWeekNum + "\n");
-			   if (!updateDemotionInfo(schedule, goBackToWeekNum)) {
-				   System.out.println("updateDemotionInfo - failed");
-				   return false;
+			   while (!updateDemotionInfo(schedule, goBackToWeekNum)) {
+				   if (!unscheduleUnrestrictedWeek(schedule, goBackToWeekNum, shouldClearHistory)) {
+					   System.out.println("unscheduleUnrestrictedWeek - failed for week: " + goBackToWeekNum);
+					   return false;
+				   }
+				   goBackToWeekNum++;
+				   if (goBackToWeekNum >= NflDefs.numberOfWeeks) {
+		              System.out.println("updateDemotionInfo - backed up to week: " + goBackToWeekNum);
+					  return false;
+				   }
 			   }
+
 			   
-			   if (!updatePromotionInfo(schedule)) {
-				   System.out.println("updatePromotionInfo - failed");
-				   return false;
-			   }
+			   //if (!updateDemotionInfo(schedule, goBackToWeekNum)) {
+                  //System.out.println("updateDemotionInfo - failed");
+				   //return false;
+			   //}
+			   
+			   //if (!updatePromotionInfo(schedule)) {
+               //  System.out.println("updatePromotionInfo - failed");
+	           //   return false;
+			   //}
 
 			   reschedLog.add("reschedAttemptsSameWeek: " + reschedAttemptsSameWeek + " for week: " + weekNum + ", reschedAttemptsOneWeekBack: " + reschedAttemptsOneWeekBack + ", reschedAttemptsMultiWeeksBack: " + reschedAttemptsMultiWeeksBack + ", reschedAttemptedMaxWeek: " + reschedAttemptedMaxWeek + ", goBackToWeekNum: " + goBackToWeekNum + "\n");
 
@@ -2020,7 +2038,8 @@ public class NflScheduler {
          partialScheduleLogBw = new BufferedWriter(partialScheduleLogFw);
 
          // write the header to the file
-         partialScheduleLogBw.write("FingerPrint,Week,Iteration,Unscheduled,BaseFP,Count \n");
+         //partialScheduleLogBw.write("FingerPrint,Week,Iteration,Unscheduled,BaseFP,Count \n");
+         partialScheduleLogBw.write("FingerPrint,Week,Iteration,Unscheduled,BaseFP,Count,GamesInWeek,HighSeqNum \n");
 	  } catch (FileNotFoundException e) {
          e.printStackTrace();
 	  } catch (IOException e) {
@@ -2074,7 +2093,9 @@ public class NflScheduler {
 		   NflGameSchedule gameSched = teamSchedule.scheduledGames[weekNum-1];
 		   if (gameSched != null) {
 			   partialScheduleEntry.fingerPrint += (double) gameSched.hashCode()*Math.pow(NflDefs.numberOfWeeks-weekNum+1,2);
-			   partialScheduleEntry.gamesInWeek.add(gameSched);
+			   if (!gameSched.isBye && !partialScheduleEntry.gamesInWeek.contains(gameSched)) {
+			      partialScheduleEntry.gamesInWeek.add(gameSched);
+			   }
 		   }
 		   else {
 			   partialScheduleEntry.unscheduledTeams++;
@@ -2099,8 +2120,16 @@ public class NflScheduler {
 
 		  try {
 	         // write the partial schedule log entry to the csv file
+             int highSeqNum = 0;
+      	     for (NflGameSchedule gameInWeek: partialScheduleEntry.gamesInWeek) {
+      	    	 if (gameInWeek.weekScheduleSequence > highSeqNum) {
+      	    		 highSeqNum = gameInWeek.weekScheduleSequence;
+      	    	 }
+      	     }
+
 			 partialScheduleLogBw.write(partialScheduleEntry.fingerPrint + "," + weekNum + "," + iterNum + "," + partialScheduleEntry.unscheduledTeams + "," + 
-	                                    partialScheduleEntry.baseFingerPrint + "," + partialScheduleEntry.count + "\n");
+	                                    partialScheduleEntry.baseFingerPrint + "," + partialScheduleEntry.count + "," + partialScheduleEntry.gamesInWeek.size() +
+	                                    "," +  highSeqNum + "\n");
 		  } catch (IOException e) {
 			 e.printStackTrace();
 		  } 

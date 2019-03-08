@@ -27,6 +27,8 @@ public class NflGMetNoRepeatedMatchup extends NflGameMetric {
 	   // check my home teams scheduled game for a repeated matchup
 	   
        score = 0.0;
+       hardViolation = false;
+       
        boolean alertViolation = false;
        int firstMatchupWeek = weekNum;
        int lastMatchupWeek = weekNum;
@@ -130,6 +132,7 @@ public class NflGMetNoRepeatedMatchup extends NflGameMetric {
 	   }
 	   
        if (alertViolation) {
+    	   hardViolation = true;
 	       if (gameSchedule.schedule.enableAlerts) {
 			    NflScheduleAlert alert = new NflScheduleAlert();
 			    String team1;

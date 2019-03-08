@@ -18,6 +18,7 @@ public class NflGMetHomeStandLimit extends NflGameMetric {
 	   // look left and right from weekNum
 			   
        score = 0.0;
+       hardViolation = false;
        
        if (gameSchedule.game.isInternational) {
     	   // this is considered a virtual away game for the home team
@@ -103,27 +104,36 @@ public class NflGMetHomeStandLimit extends NflGameMetric {
 	   }
 	   
 	   boolean alertViolation = false;
+	   
+	   //if (homeStandLength == 2) {
+		  // score = 1.0;
+		  //  score = 2.0;
+	   // }
 	   if (homeStandLength == 3) {
 	      //System.out.println("homeStandLength == 3; lastHomeWeek: " + lastHomeWeek + ", firstHomeWeek: " + firstHomeWeek);
-	      score = .5;
+          score = 3.0;
 	      if (firstHomeWeek == 1) {
 	          //System.out.println("... found firstHomeWeek == 1");
 		      // score = 1.0;
-		      score = 2.0;
+		      score = 4.0;
 		      alertViolation = true;
+		      hardViolation = true;
 	      }
 	      else if (lastHomeWeek == NflDefs.numberOfWeeks) {
 	         // System.out.println("... found lastHomeWeek == " + NflDefs.numberOfWeeks);
 		     // score = 1.0;
-		     score = 2.0;
+		     score = 4.0;
 		     alertViolation = true;
+		     hardViolation = true;
 	      }
 	   }
-	   else if (homeStandLength > 3) {
+	   else if (homeStandLength > 4) {
 		  // score = 1.0;
-		  score = 2.0;
+		  score = 6.0;
 	      alertViolation = true;
+	      hardViolation = true;
 	   }
+
 	     
        if (alertViolation) {
 	       if (gameSchedule.schedule.enableAlerts) {

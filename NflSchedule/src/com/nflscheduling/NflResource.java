@@ -12,7 +12,7 @@ public class NflResource {
    public int[] weeklyMinimum;
 
    NflResource() {
-      System.out.println("Creating an nflAttrLimit");
+      //System.out.println("Creating an nflAttrLimit");
       weeklyLimit = new int[NflDefs.numberOfWeeks];
       weeklyMinimum = new int[NflDefs.numberOfWeeks];
    }

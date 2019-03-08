@@ -6,7 +6,8 @@ public class NflScheduleMetric {
 
    public String metricName;
    public double weight;
-   public double  score;   // combined and weighted 
+   public double score;   // combined and weighted 
+   public boolean hardViolation = false;
 
    public NflScheduleMetric() {
       // TODO Auto-generated constructor stub
@@ -26,6 +27,8 @@ public class NflScheduleMetric {
    public boolean computeMetric(NflSchedule schedule, String gameMetricName) {
       ArrayList<NflGameSchedule> candidateGames = null;
       score = 0;
+      hardViolation = false;
+      
       for (int ti=1; ti <= NflDefs.numberOfTeams; ti++) {
          NflTeamSchedule teamSchedule = schedule.teamSchedules.get(ti-1);
          for (int wi=1; wi <= NflDefs.numberOfWeeks; wi++) {
@@ -37,6 +40,9 @@ public class NflScheduleMetric {
 	   		NflGameMetric gameMetric = teamGame.findMetric(gameMetricName);
 
 	   		gameMetric.computeMetric(wi, schedule, candidateGames);
+	   		if (gameMetric.hardViolation) {
+	   			hardViolation = true;
+	   		}
             score += gameMetric.score;            
          }
       }

@@ -47,6 +47,9 @@ public class NflGMetRoadTripLimit extends NflGameMetric {
 	   int firstRoadWeek;
 	   int lastRoadWeek;
 
+	   score = 0.0;
+	   hardViolation = false;
+	   
        // left to earlier weeks
        firstRoadWeek = weekNum;
        for (int wi=weekNum-1; wi >= 1; wi--) {
@@ -96,23 +99,31 @@ public class NflGMetRoadTripLimit extends NflGameMetric {
        }
        
 	   boolean alertViolation = false;
+	   
+       //if (roadTripLength == 2) {
+  		  //System.out.println("roadTripLength == 3; lastRoadWeek: " + lastRoadWeek + ", firstRoadWeek: " + firstRoadWeek);
+       //   score += 2.0;
+       //}
        if (roadTripLength == 3) {
   		  //System.out.println("roadTripLength == 3; lastRoadWeek: " + lastRoadWeek + ", firstRoadWeek: " + firstRoadWeek);
-          score += .4;
+          score += 3.0;
           if (firstRoadWeek == 1) {
          	  //System.out.println("... found firstRoadWeek == 1");
               score = 4.0;
     	      alertViolation = true;
+    	      hardViolation = true;
           }
           else if (lastRoadWeek == NflDefs.numberOfWeeks) {
               //System.out.println("... found lastRoadWeek == " + NflDefs.numberOfWeeks);
-              score += 4.0;
+              score += 6.0;
     	      alertViolation = true;
+    	      hardViolation = true;
           }
        }
        else if (roadTripLength > 3) {
-          score += 4.0;
+          score += 6.0;
  	      alertViolation = true;
+ 	      hardViolation = true;
       }
        
        if (alertViolation) {

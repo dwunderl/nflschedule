@@ -14,6 +14,8 @@ public class NflSMetDivisionalStart extends NflScheduleMetric {
 	@Override
 	public boolean computeMetric(NflSchedule schedule) {
       score = 0;
+      hardViolation = false;
+      
       for (int ti=1; ti <= NflDefs.numberOfTeams; ti++) {
          NflTeamSchedule teamSchedule = schedule.teamSchedules.get(ti-1);
          // Find the first divisional game for this team
@@ -26,6 +28,7 @@ public class NflSMetDivisionalStart extends NflScheduleMetric {
              
              if (teamGame.game.findAttribute("division")) {
             	 if (wi > 7) {
+            		hardViolation = true;
                      // first divisional is too late in the season - alert
   	    		    NflScheduleAlert alert = new NflScheduleAlert();
   	    		    //alert.alertDescr = metricName;
