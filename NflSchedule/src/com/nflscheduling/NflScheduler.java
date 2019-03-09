@@ -52,6 +52,7 @@ public class NflScheduler {
    
    public int reschedAttemptsMultiWeeksBack; // retries multiple weeks back before giving up completely
                                                     // unschedule the failed week and series of weeks, demote a game and retry the earliest unsched week
+   public String terminationReason;
    
    //  Demotion Scheme: TBD document it
    //  Promotion scheme is not used - promotionInfo
@@ -182,43 +183,48 @@ public class NflScheduler {
       //---------- Schedule Initialization --------------------
       // create next curSchedule
 	  // initialize unscheduledGames of the curSchedule from all the modeled games
-	int scheduleAttempts;
+      int scheduleAttempts;
 
-	for (scheduleAttempts = 0; scheduleAttempts < NflDefs.scheduleAttempts; scheduleAttempts++) {
-	      scheduleInit();
+	  for (scheduleAttempts = 1; scheduleAttempts < NflDefs.scheduleAttempts; scheduleAttempts++) {
+         rnd = new Random();
+
+	     scheduleInit();
 	
-		  // Schedule games that are restricted - according to the restrictedGames
-		  scheduleForcedGames(restrictedGames, curSchedule);
+         // Schedule games that are restricted - according to the restrictedGames
+         scheduleForcedGames(restrictedGames, curSchedule);
 		  
-		  reschedLog = new ArrayList<String>();
-		  openBriefLogFile();
-		  openPartialScheduleLogFile();
-		  iterNum = 0;
-		  fingerPrintMap = new HashMap<Double, NflPartialScheduleEntry>();
-		  fpSkipCount = 0;
+         reschedLog = new ArrayList<String>();
+         openBriefLogFile();
+         openPartialScheduleLogFile();
+         iterNum = 0;
+         fingerPrintMap = new HashMap<Double, NflPartialScheduleEntry>();
+         fpSkipCount = 0;
 
-		  // Schedule the remaining unrestricted games
-		  scheduleUnrestrictedGames(curSchedule);
+         // Schedule the remaining unrestricted games
+         scheduleUnrestrictedGames(curSchedule);
 	
-		  closeBriefLogFile();
-		  closePartialScheduleLogFile();
+         closeBriefLogFile();
+         closePartialScheduleLogFile();
 	
-		  //System.out.println("Total Schedule Metric: " + curSchedule.score);
-
-		  if (curSchedule.unscheduledGames.size() == 0) {
-			  curSchedule.computeMetrics();
-		      System.out.println("Schedule: " + scheduleAttempts + ", Total Schedule Metric: " + curSchedule.score + " Total Alerts: " + curSchedule.alerts.size() + " Total hard violations: " + curSchedule.hardViolationCount + " vios: " + curSchedule.hardViolations);
-			  if (curSchedule.alerts.size() <= NflDefs.alertLimit && curSchedule.hardViolationCount <= 2) {
-			     schedules.add(curSchedule);
-			     writeScheduleCsv(curSchedule, "curSchedule" + schedules.size() + ".csv");
-			     if (schedules.size() >= NflDefs.savedScheduleLimit) {
-			    	 break; // hit the limit of saved schedules
-			     }
-			  }
-		  }
-	  }
+         if (curSchedule.unscheduledGames.size() == 0) {
+            curSchedule.computeMetrics();
+            terminationReason = "Schedule Metric: " + curSchedule.score + " Alerts: " + curSchedule.alerts.size() + " hard violations: " + curSchedule.hardViolationCount + " vios: " + curSchedule.hardViolations;
+            // if (curSchedule.alerts.size() <= NflDefs.alertLimit && curSchedule.hardViolationCount <= 1) {
+            if (curSchedule.hardViolationCount == 0) {
+               schedules.add(curSchedule);
+               String savedScheduleFileName = "curSchedule" + schedules.size() + ".csv";
+               writeScheduleCsv(curSchedule, savedScheduleFileName);
+               terminationReason += ", " + savedScheduleFileName;
+            }
+         }
+	     System.out.println("Schedule: " + scheduleAttempts + ", iterations: " + iterNum + ", " + terminationReason);
+	      
+         if (schedules.size() >= NflDefs.savedScheduleLimit) {
+            break; // hit the limit of saved schedules
+         }
+      }
 	  	  
-	  return true;
+      return true;
    }
 
    public static void main(String[] args) {
@@ -981,7 +987,7 @@ public class NflScheduler {
   	     
          // Write out Alerts
          if (!schedule.alerts.isEmpty()) {
-            bw.write("\nAlert,week,home,away\n");
+            bw.write("\nAlerts\n");
             for(NflScheduleAlert alert: schedule.alerts) {
                 //bw.write(alert.alertDescr + "," + alert.weekNum + "," + alert.homeTeam + "," + alert.awayTeam + "\n");
                 bw.write(alert.alertDescr + "\n");
@@ -1539,7 +1545,8 @@ public class NflScheduler {
 				   //if (true) {
 				   //if (iterNum >= 50) {
 				   // Done - no more rescheduling attempts left to try
-				   
+		
+/*
 				   System.out.println("Scheduler: Failed to schedule all unrestricted games in week: " + weekNum + " remaining games are:");
 				   for (int gi=0; gi < schedule.unscheduledGames.size(); gi++) {
 					   NflGameSchedule usgame = schedule.unscheduledGames.get(gi);
@@ -1548,7 +1555,8 @@ public class NflScheduler {
 
 					   //System.out.println("Scheduler: Unscheduled: home team " + usgame.game.homeTeam + ", away team: " + usgame.game.awayTeam);
 				   }
-				   
+*/
+				   terminationReason = "Failed to schedule all unrestricted games in week: " + weekNum + ", low Week: " + lowestWeekNum;
 				   status = false;
 				   break;
 			   }
